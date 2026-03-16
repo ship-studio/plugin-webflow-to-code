@@ -87,7 +87,10 @@ Plans:
   3. Brief includes a two-tier multi-session scaffold: a Planning Document (comprehensive site overview) and a Session Tracker (agent-maintained checklist with resume instructions)
   4. `brief.md` is written to `.shipstudio/assets/` and the results UI shows the file path and approximate token count
   5. Brief is written as agent-agnostic markdown and documents all assets, CSS file references, page breakdowns, and Webflow component migration notes in a single coherent document
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 05-01-PLAN.md — Brief types, generateBrief pure function (TDD), and I/O helpers (saveBrief, copyToClipboard)
+- [ ] 05-02-PLAN.md — ZipStep extension, MainView pipeline integration, results panel with token count and copy button
 
 ## Progress
 
@@ -100,4 +103,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Zip Input and Extraction | 2/2 | Complete    | 2026-03-16 |
 | 3. Asset Pipeline | 2/2 | Complete    | 2026-03-16 |
 | 4. Site Analysis | 3/3 | Complete    | 2026-03-16 |
-| 5. Brief Generation and Full UI | 0/TBD | Not started | - |
+| 5. Brief Generation and Full UI | 0/2 | Not started | - |
