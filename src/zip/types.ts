@@ -1,9 +1,12 @@
+import type { AssetManifest } from '../assets/types';
+
 export type ZipStep =
   | { kind: 'idle' }
   | { kind: 'picking' }
   | { kind: 'extracting'; fileCount: number }
   | { kind: 'validating' }
-  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number }
+  | { kind: 'copying'; label: string }
+  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number; assetManifest?: AssetManifest }
   | { kind: 'error'; message: string };
 
 export interface ZipManifest {
