@@ -42,8 +42,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Plugin Infrastructure
 
-- [ ] **INFR-01**: Plugin follows Ship Studio conventions (toolbar slot, externalized React, shell.exec for file ops, committed dist/)
-- [ ] **INFR-02**: Plugin uses the plugin-starter template structure (plugin.json, vite.config.ts, tsconfig.json)
+- [x] **INFR-01**: Plugin follows Ship Studio conventions (toolbar slot, externalized React, shell.exec for file ops, committed dist/)
+- [x] **INFR-02**: Plugin uses the plugin-starter template structure (plugin.json, vite.config.ts, tsconfig.json)
 
 ## v2 Requirements
 
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BREF-02 | Phase 5 | Pending |
 | BREF-03 | Phase 5 | Pending |
 | BREF-04 | Phase 5 | Pending |
-| INFR-01 | Phase 1 | Pending |
-| INFR-02 | Phase 1 | Pending |
+| INFR-01 | Phase 1 | Complete |
+| INFR-02 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total

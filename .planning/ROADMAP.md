@@ -12,7 +12,7 @@ Five phases that build the pipeline from the outside in: establish a working plu
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Plugin Scaffolding** - Working plugin shell that loads in Ship Studio with a modal and correct build setup
+- [x] **Phase 1: Plugin Scaffolding** - Working plugin shell that loads in Ship Studio with a modal and correct build setup
 - [ ] **Phase 2: Zip Input and Extraction** - User can select a Webflow zip, extract it, and see step-by-step progress with error handling
 - [ ] **Phase 3: Asset Pipeline** - All media assets copied to `.shipstudio/assets/` with a typed manifest including responsive variant grouping
 - [ ] **Phase 4: Site Analysis** - Full HTML parsing — page discovery, structural breakdowns, Webflow component detection, shared layout identification
@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Plugin file structure matches plugin-starter conventions (plugin.json, vite.config.ts, tsconfig.json, src/index.tsx)
 **Plans:** 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Scaffold plugin config, source files, build output, and modal shell with mode selector preview
+- [x] 01-01-PLAN.md — Scaffold plugin config, source files, build output, and modal shell with mode selector preview
 
 ### Phase 2: Zip Input and Extraction
 **Goal**: Users can select a Webflow export zip, the plugin extracts it to a temp directory, validates it is a real Webflow export, and shows named progress steps throughout
@@ -86,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffolding | 0/1 | Planning complete | - |
+| 1. Plugin Scaffolding | 1/1 | Complete | 2026-03-16 |
 | 2. Zip Input and Extraction | 0/TBD | Not started | - |
 | 3. Asset Pipeline | 0/TBD | Not started | - |
 | 4. Site Analysis | 0/TBD | Not started | - |
