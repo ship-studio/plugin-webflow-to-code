@@ -36,9 +36,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Brief Generation
 
 - [ ] **BREF-01**: User selects between "Pixel Perfect" and "Best Site" modes before extraction via radio cards in the modal
-- [ ] **BREF-02**: Brief contains mode-specific behavioral instructions (Pixel Perfect: exact dimensions, fixed units; Best Site: semantic HTML, responsive patterns)
-- [ ] **BREF-03**: Brief includes a multi-session migration scaffold (ordered page list, progress tracking format, resume instructions)
-- [ ] **BREF-04**: Plugin shows approximate token count in the results UI after brief generation
+- [x] **BREF-02**: Brief contains mode-specific behavioral instructions (Pixel Perfect: exact dimensions, fixed units; Best Site: semantic HTML, responsive patterns)
+- [x] **BREF-03**: Brief includes a multi-session migration scaffold (ordered page list, progress tracking format, resume instructions)
+- [x] **BREF-04**: Plugin shows approximate token count in the results UI after brief generation
 
 ### Plugin Infrastructure
 
@@ -86,9 +86,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WFLW-02 | Phase 4 | Complete |
 | WFLW-03 | Phase 4 | Complete |
 | BREF-01 | Phase 5 | Pending |
-| BREF-02 | Phase 5 | Pending |
-| BREF-03 | Phase 5 | Pending |
-| BREF-04 | Phase 5 | Pending |
+| BREF-02 | Phase 5 | Complete |
+| BREF-03 | Phase 5 | Complete |
+| BREF-04 | Phase 5 | Complete |
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |
 
