@@ -95,21 +95,6 @@ const PLUGIN_CSS = `
   line-height: 1.3;
 }
 
-.wf2c-btn-primary {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: var(--accent, #0d99ff);
-  color: white;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.wf2c-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 `;
 function Modal({ open, onClose, title, headerRight, children }) {
   useEffect(() => {
@@ -198,7 +183,7 @@ function MainView() {
         }
       )
     ] }),
-    /* @__PURE__ */ jsx("div", { style: { marginTop: "16px" }, children: /* @__PURE__ */ jsx("button", { className: "wf2c-btn-primary", disabled: true, children: "Select Webflow Export (.zip)" }) })
+    /* @__PURE__ */ jsx("div", { style: { marginTop: "16px" }, children: /* @__PURE__ */ jsx("button", { className: "btn-primary", disabled: true, style: { width: "100%" }, children: "Select Webflow Export (.zip)" }) })
   ] });
 }
 function WebflowIcon() {

@@ -94,19 +94,4 @@ export const PLUGIN_CSS = `
   line-height: 1.3;
 }
 
-.wf2c-btn-primary {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: var(--accent, #0d99ff);
-  color: white;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.wf2c-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 `;

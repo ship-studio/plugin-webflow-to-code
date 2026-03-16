@@ -29,7 +29,7 @@ export function MainView() {
         </div>
       </div>
       <div style={{ marginTop: '16px' }}>
-        <button className="wf2c-btn-primary" disabled>
+        <button className="btn-primary" disabled style={{ width: '100%' }}>
           Select Webflow Export (.zip)
         </button>
       </div>
