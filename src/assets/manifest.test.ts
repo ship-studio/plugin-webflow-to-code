@@ -250,8 +250,8 @@ describe('buildManifest', () => {
 
   it('computes totalCopied as count of all non-directory entries in images/, videos/, fonts/, css/, js/', () => {
     const manifest = buildManifest(MONEYSTACK_ENTRIES, ASSETS_DIR, PROJECT_PATH);
-    // images: 13 files, videos: 4 files, fonts: 0, css: 2, js: 1 = 20
-    expect(manifest.totalCopied).toBe(20);
+    // images: 14 files, videos: 4 files, fonts: 0, css: 2, js: 1 = 21
+    expect(manifest.totalCopied).toBe(21);
   });
 
   it('all entries have referencingPages: []', () => {
@@ -300,9 +300,9 @@ describe('Moneystack-scale grouping test', () => {
     const imageEntries = MONEYSTACK_ENTRIES.filter(
       e => e.startsWith('images/') && !e.endsWith('/'),
     );
-    // Raw image files: 13 (update-chart-1 + 2 variants, loading variant, dylan + variant,
+    // Raw image files: 14 (update-chart-1 + 2 variants, loading variant, dylan + variant,
     // aaa + variant, favicon, webclip, logo.svg, icon-check.svg, animation.gif, placeholder-image)
-    expect(imageEntries).toHaveLength(13);
+    expect(imageEntries).toHaveLength(14);
 
     const result = groupResponsiveVariants(imageEntries, ASSETS_DIR);
     // Grouped: update-chart-1 (1), loading (1), dylan (1), aaa (1),
