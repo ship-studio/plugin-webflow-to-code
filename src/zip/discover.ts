@@ -17,9 +17,9 @@ export function parseUnzipManifest(stdout: string): ZipManifest {
     if (match) entries.push(match[1].trim());
   }
 
-  // Extract total from summary: "  35767120                     66 files"
-  const summaryMatch = stdout.match(/(\d+) files/);
-  const fileCount = summaryMatch ? parseInt(summaryMatch[1], 10) : entries.length;
+  // Count only actual files (exclude directory entries ending with /)
+  const fileEntries = entries.filter((e) => !e.endsWith('/'));
+  const fileCount = fileEntries.length;
 
   return { fileCount, entries };
 }

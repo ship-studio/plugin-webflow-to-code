@@ -87,8 +87,8 @@ describe('extractAndVerify', () => {
       { exit_code: 0, stdout: '', stderr: '' },
       // unzip -o
       { exit_code: 0, stdout: '', stderr: '' },
-      // find count
-      { exit_code: 0, stdout: '4', stderr: '' },
+      // find count (3 files — css/ directory entry excluded from fileCount)
+      { exit_code: 0, stdout: '3', stderr: '' },
     ]);
 
     await extractAndVerify(shell, '/path/site.zip', '/tmp/out');
@@ -112,7 +112,7 @@ describe('extractAndVerify', () => {
       { exit_code: 0, stdout: SAMPLE_UNZIP_LIST, stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
-      { exit_code: 0, stdout: '1', stderr: '' }, // 1 actual vs 4 expected
+      { exit_code: 0, stdout: '0', stderr: '' }, // 0 actual vs 3 expected (dir excluded)
     ]);
     await expect(extractAndVerify(shell, '/path/site.zip', '/tmp/out')).rejects.toThrow('Extraction incomplete');
   });
@@ -122,7 +122,7 @@ describe('extractAndVerify', () => {
       { exit_code: 0, stdout: SAMPLE_UNZIP_LIST, stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
-      { exit_code: 0, stdout: '3', stderr: '' }, // 3 actual vs 4 expected, within tolerance
+      { exit_code: 0, stdout: '2', stderr: '' }, // 2 actual vs 3 expected (dir excluded), within tolerance
     ]);
     const result = await extractAndVerify(shell, '/path/site.zip', '/tmp/out');
     expect(result).toHaveProperty('fileCount');
@@ -135,9 +135,9 @@ describe('extractAndVerify', () => {
       { exit_code: 0, stdout: SAMPLE_UNZIP_LIST, stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
       { exit_code: 0, stdout: '', stderr: '' },
-      { exit_code: 0, stdout: '4', stderr: '' },
+      { exit_code: 0, stdout: '3', stderr: '' },
     ]);
     await extractAndVerify(shell, '/path/site.zip', '/tmp/out', onProgress);
-    expect(onProgress).toHaveBeenCalledWith('Extracting zip... (4 files)');
+    expect(onProgress).toHaveBeenCalledWith('Extracting zip... (3 files)');
   });
 });

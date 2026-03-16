@@ -30,9 +30,10 @@ function createMockShell(
 }
 
 describe('parseUnzipManifest', () => {
-  it('extracts 66 files (from summary line) and correct entries from real unzip -l output', () => {
+  it('counts only files (excludes directory entries) from unzip -l output', () => {
     const result = parseUnzipManifest(SAMPLE_UNZIP_OUTPUT);
-    expect(result.fileCount).toBe(66);
+    // 7 entries total, but css/ is a directory entry — 6 actual files
+    expect(result.fileCount).toBe(6);
     expect(result.entries).toHaveLength(7);
     expect(result.entries).toContain('css/normalize.css');
     expect(result.entries).toContain('index.html');

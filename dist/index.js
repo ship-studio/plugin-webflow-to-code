@@ -1,5 +1,5 @@
 import { jsx, jsxs, Fragment } from "data:text/javascript,export const jsx=window.__SHIPSTUDIO_REACT__.createElement;export const jsxs=window.__SHIPSTUDIO_REACT__.createElement;export const Fragment=window.__SHIPSTUDIO_REACT__.Fragment;";
-import { useEffect, useCallback, useState } from "data:text/javascript,export default window.__SHIPSTUDIO_REACT__;export const useState=window.__SHIPSTUDIO_REACT__.useState;export const useEffect=window.__SHIPSTUDIO_REACT__.useEffect;export const useCallback=window.__SHIPSTUDIO_REACT__.useCallback;export const useMemo=window.__SHIPSTUDIO_REACT__.useMemo;export const useRef=window.__SHIPSTUDIO_REACT__.useRef;export const useContext=window.__SHIPSTUDIO_REACT__.useContext;export const createElement=window.__SHIPSTUDIO_REACT__.createElement;export const Fragment=window.__SHIPSTUDIO_REACT__.Fragment;";
+import { useEffect, useCallback, useState, useRef } from "data:text/javascript,export default window.__SHIPSTUDIO_REACT__;export const useState=window.__SHIPSTUDIO_REACT__.useState;export const useEffect=window.__SHIPSTUDIO_REACT__.useEffect;export const useCallback=window.__SHIPSTUDIO_REACT__.useCallback;export const useMemo=window.__SHIPSTUDIO_REACT__.useMemo;export const useRef=window.__SHIPSTUDIO_REACT__.useRef;export const useContext=window.__SHIPSTUDIO_REACT__.useContext;export const createElement=window.__SHIPSTUDIO_REACT__.createElement;export const Fragment=window.__SHIPSTUDIO_REACT__.Fragment;";
 const STYLE_ID = "webflow-to-code-styles";
 const PLUGIN_CSS = `
 .wf2c-overlay {
@@ -95,6 +95,47 @@ const PLUGIN_CSS = `
   line-height: 1.3;
 }
 
+.wf2c-progress {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wf2c-progress::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent, #0d99ff);
+  border-radius: 50%;
+  animation: wf2c-spin 0.6s linear infinite;
+}
+
+.wf2c-progress-done {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.wf2c-progress-done::before {
+  content: none;
+}
+
+.wf2c-error {
+  font-size: 13px;
+  color: #e53935;
+  padding: 12px;
+  background: rgba(229, 57, 53, 0.08);
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+@keyframes wf2c-spin {
+  to { transform: rotate(360deg); }
+}
+
 `;
 function Modal({ open, onClose, title, headerRight, children }) {
   useEffect(() => {
@@ -155,35 +196,200 @@ function Modal({ open, onClose, title, headerRight, children }) {
     /* @__PURE__ */ jsx("div", { className: "wf2c-modal-body", children })
   ] }) });
 }
+const _w = window;
+function usePluginContext() {
+  const React = _w.__SHIPSTUDIO_REACT__;
+  const CtxRef = _w.__SHIPSTUDIO_PLUGIN_CONTEXT_REF__;
+  if (CtxRef && (React == null ? void 0 : React.useContext)) {
+    return React.useContext(CtxRef);
+  }
+  return null;
+}
+function parseUnzipManifest(stdout) {
+  const lines = stdout.split("\n");
+  const entries = [];
+  for (const line of lines) {
+    if (line.match(/^-{5,}/) || line.match(/Length\s+Date/) || line.trim() === "") continue;
+    const match = line.match(/^\s*\d+\s+\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}\s+(.+)$/);
+    if (match) entries.push(match[1].trim());
+  }
+  const fileEntries = entries.filter((e) => !e.endsWith("/"));
+  const fileCount = fileEntries.length;
+  return { fileCount, entries };
+}
+async function validateWebflowExport(shell, extractDir, entries) {
+  const hasHtml = entries.some((e) => e.endsWith(".html") && !e.includes("/"));
+  if (!hasHtml) {
+    throw new Error("No HTML files found — is this a Webflow export?");
+  }
+  const hasCss = entries.some((e) => e.startsWith("css/"));
+  if (!hasCss) {
+    throw new Error("Missing CSS directory — is this a Webflow export?");
+  }
+  const grepResult = await shell.exec("bash", [
+    "-c",
+    `grep -c 'data-wf-site' '${extractDir}/index.html' 2>/dev/null || echo 0`
+  ]);
+  const wfSiteCount = parseInt(grepResult.stdout.trim(), 10);
+  if (wfSiteCount === 0) {
+    throw new Error(
+      "No data-wf-site attribute found — this may not be a Webflow export"
+    );
+  }
+}
+async function pickZipFile(shell) {
+  const result = await shell.exec("osascript", [
+    "-e",
+    'POSIX path of (choose file with prompt "Select Webflow export zip" of type {"zip"})'
+  ]);
+  if (result.exit_code !== 0) {
+    if (result.stderr.includes("-128")) {
+      return null;
+    }
+    throw new Error(`File picker failed: ${result.stderr.trim()}`);
+  }
+  const path = result.stdout.trim();
+  if (!path) {
+    throw new Error("No path returned from file picker");
+  }
+  return path;
+}
+function buildExtractDir(projectPath, zipPath) {
+  const zipFileName = zipPath.split("/").pop();
+  const sanitizedName = zipFileName.replace(/\.zip$/i, "").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 60);
+  return `${projectPath}/.shipstudio/tmp/${sanitizedName}`;
+}
+async function extractAndVerify(shell, zipPath, extractDir, onProgress) {
+  const listResult = await shell.exec("unzip", ["-l", zipPath]);
+  if (listResult.exit_code !== 0) {
+    throw new Error(`Cannot read zip manifest: ${listResult.stderr.trim()}`);
+  }
+  const manifest = parseUnzipManifest(listResult.stdout);
+  await shell.exec("mkdir", ["-p", extractDir]);
+  onProgress == null ? void 0 : onProgress(`Extracting zip... (${manifest.fileCount} files)`);
+  const extractResult = await shell.exec(
+    "unzip",
+    ["-o", zipPath, "-d", extractDir],
+    { timeout: 3e5 }
+  );
+  if (extractResult.exit_code !== 0) {
+    throw new Error(`Extraction failed: ${extractResult.stderr.trim()}`);
+  }
+  const countResult = await shell.exec("bash", [
+    "-c",
+    `find '${extractDir}' -type f | wc -l | tr -d ' '`
+  ]);
+  const actual = parseInt(countResult.stdout.trim(), 10);
+  if (actual < manifest.fileCount - 2) {
+    throw new Error(
+      `Extraction incomplete: expected ~${manifest.fileCount} files, found ${actual}. The zip may be corrupted.`
+    );
+  }
+  return manifest;
+}
 function MainView() {
   const [mode, setMode] = useState("pixel-perfect");
+  const ctx = usePluginContext();
+  const shellRef = useRef((ctx == null ? void 0 : ctx.shell) ?? null);
+  shellRef.current = (ctx == null ? void 0 : ctx.shell) ?? null;
+  const [step, setStep] = useState({ kind: "idle" });
+  const handleSelectZip = useCallback(async () => {
+    var _a;
+    const shell = shellRef.current;
+    const projectPath = (_a = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a.path;
+    if (!shell || !projectPath) return;
+    setStep({ kind: "picking" });
+    let zipPath;
+    try {
+      zipPath = await pickZipFile(shell);
+    } catch (err) {
+      setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "File picker failed" });
+      return;
+    }
+    if (!zipPath) {
+      setStep({ kind: "idle" });
+      return;
+    }
+    const extractDir = buildExtractDir(projectPath, zipPath);
+    let manifest;
+    try {
+      manifest = await extractAndVerify(shell, zipPath, extractDir, (label) => {
+        const countMatch = label.match(/\((\d+) files\)/);
+        const fileCount = countMatch ? parseInt(countMatch[1], 10) : 0;
+        setStep({ kind: "extracting", fileCount });
+      });
+    } catch (err) {
+      setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "Extraction failed" });
+      return;
+    }
+    setStep({ kind: "validating" });
+    try {
+      await validateWebflowExport(shell, extractDir, manifest.entries);
+    } catch (err) {
+      setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "Validation failed" });
+      return;
+    }
+    setStep({ kind: "done", zipPath, extractDir, fileCount: manifest.fileCount });
+  }, [ctx]);
+  const handleRetry = useCallback(() => {
+    setStep({ kind: "idle" });
+  }, []);
+  const showModeSelector = step.kind === "idle" || step.kind === "picking" || step.kind === "error";
   return /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx("span", { className: "wf2c-label", children: "Conversion Mode" }),
-    /* @__PURE__ */ jsxs("div", { className: "wf2c-mode-group", children: [
-      /* @__PURE__ */ jsxs(
-        "div",
-        {
-          className: `wf2c-mode-card${mode === "pixel-perfect" ? " selected" : ""}`,
-          onClick: () => setMode("pixel-perfect"),
-          children: [
-            /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-name", children: "Pixel Perfect" }),
-            /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-desc", children: "Exact dimensions, fixed units, preserve Webflow layout" })
-          ]
-        }
-      ),
-      /* @__PURE__ */ jsxs(
-        "div",
-        {
-          className: `wf2c-mode-card${mode === "best-site" ? " selected" : ""}`,
-          onClick: () => setMode("best-site"),
-          children: [
-            /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-name", children: "Best Site" }),
-            /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-desc", children: "Semantic HTML, responsive patterns, modern conventions" })
-          ]
-        }
-      )
+    showModeSelector && /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("span", { className: "wf2c-label", children: "Conversion Mode" }),
+      /* @__PURE__ */ jsxs("div", { className: "wf2c-mode-group", children: [
+        /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: `wf2c-mode-card${mode === "pixel-perfect" ? " selected" : ""}`,
+            onClick: () => setMode("pixel-perfect"),
+            children: [
+              /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-name", children: "Pixel Perfect" }),
+              /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-desc", children: "Exact dimensions, fixed units, preserve Webflow layout" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: `wf2c-mode-card${mode === "best-site" ? " selected" : ""}`,
+            onClick: () => setMode("best-site"),
+            children: [
+              /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-name", children: "Best Site" }),
+              /* @__PURE__ */ jsx("div", { className: "wf2c-mode-card-desc", children: "Semantic HTML, responsive patterns, modern conventions" })
+            ]
+          }
+        )
+      ] })
     ] }),
-    /* @__PURE__ */ jsx("div", { style: { marginTop: "16px" }, children: /* @__PURE__ */ jsx("button", { className: "btn-primary", disabled: true, style: { width: "100%" }, children: "Select Webflow Export (.zip)" }) })
+    /* @__PURE__ */ jsxs("div", { style: { marginTop: "16px" }, children: [
+      step.kind === "idle" && /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: handleSelectZip, style: { width: "100%" }, children: "Select Webflow Export (.zip)" }),
+      step.kind === "picking" && /* @__PURE__ */ jsx("button", { className: "btn-primary", disabled: true, style: { width: "100%" }, children: "Opening file picker..." }),
+      step.kind === "extracting" && /* @__PURE__ */ jsxs("div", { className: "wf2c-progress", children: [
+        "Extracting zip... (",
+        step.fileCount,
+        " files)"
+      ] }),
+      step.kind === "validating" && /* @__PURE__ */ jsx("div", { className: "wf2c-progress", children: "Validating export..." }),
+      step.kind === "done" && /* @__PURE__ */ jsxs("div", { className: "wf2c-progress wf2c-progress-done", children: [
+        "Done — extracted ",
+        step.fileCount,
+        " files"
+      ] }),
+      step.kind === "error" && /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx("div", { className: "wf2c-error", children: step.message }),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "btn-primary",
+            onClick: handleRetry,
+            style: { width: "100%", marginTop: "8px" },
+            children: "Try Again"
+          }
+        )
+      ] })
+    ] })
   ] });
 }
 function WebflowIcon() {
