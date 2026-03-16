@@ -1,5 +1,6 @@
 import type { AssetManifest } from '../assets/types';
 import type { SiteAnalysis } from '../analysis/types';
+import type { BriefResult } from '../brief/types';
 
 export type ZipStep =
   | { kind: 'idle' }
@@ -8,7 +9,8 @@ export type ZipStep =
   | { kind: 'validating' }
   | { kind: 'copying'; label: string }
   | { kind: 'analyzing'; pageCount: number }
-  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number; assetManifest?: AssetManifest; siteAnalysis?: SiteAnalysis }
+  | { kind: 'generating' }
+  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number; assetManifest?: AssetManifest; siteAnalysis?: SiteAnalysis; briefResult?: BriefResult }
   | { kind: 'error'; message: string };
 
 export interface ZipManifest {

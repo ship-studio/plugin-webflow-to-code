@@ -4,6 +4,9 @@ import { pickZipFile, extractAndVerify, buildExtractDir } from '../zip/extract';
 import { validateWebflowExport } from '../zip/discover';
 import { copyAssets } from '../assets/copy';
 import { buildSiteAnalysis } from '../analysis/analyze';
+import { generateBrief } from '../brief/generate';
+import { saveBrief, copyToClipboard } from '../brief/io';
+import type { BriefResult } from '../brief/types';
 import type { ZipStep } from '../zip/types';
 
 type Mode = 'pixel-perfect' | 'best-site';
@@ -15,6 +18,7 @@ export function MainView() {
   shellRef.current = ctx?.shell ?? null;
 
   const [step, setStep] = useState<ZipStep>({ kind: 'idle' });
+  const [copied, setCopied] = useState(false);
 
   const handleSelectZip = useCallback(async () => {
     const shell = shellRef.current;
@@ -84,13 +88,37 @@ export function MainView() {
       return;
     }
 
-    // Step 6: Done
-    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest, siteAnalysis });
-  }, [ctx]);
+    // Step 6: Generate brief
+    setStep({ kind: 'generating' });
+    let briefResult: BriefResult;
+    try {
+      briefResult = generateBrief({ mode, siteAnalysis, assetManifest, projectPath });
+      await saveBrief(shell, projectPath, briefResult.markdown);
+    } catch (err: any) {
+      setStep({ kind: 'error', message: err?.message || 'Brief generation failed' });
+      return;
+    }
+
+    // Step 7: Done with all results
+    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest, siteAnalysis, briefResult });
+  }, [ctx, mode]);
 
   const handleRetry = useCallback(() => {
     setStep({ kind: 'idle' });
+    setCopied(false);
   }, []);
+
+  const handleCopyBrief = useCallback(async () => {
+    const shell = shellRef.current;
+    if (!shell || step.kind !== 'done' || !step.briefResult) return;
+    try {
+      await copyToClipboard(shell, step.briefResult.markdown);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Silently fail clipboard — non-critical
+    }
+  }, [step]);
 
   const showModeSelector = step.kind === 'idle' || step.kind === 'picking' || step.kind === 'error';
 
@@ -153,15 +181,39 @@ export function MainView() {
           <div className="wf2c-progress">Analyzing pages... ({step.pageCount})</div>
         )}
 
-        {step.kind === 'done' && (
+        {step.kind === 'generating' && (
+          <div className="wf2c-progress">Generating brief...</div>
+        )}
+
+        {step.kind === 'done' && step.briefResult && (
+          <div className="wf2c-results">
+            <div className="wf2c-results-header">Brief ready</div>
+            <button
+              className="btn-primary"
+              onClick={handleCopyBrief}
+              style={{ width: '100%' }}
+            >
+              {copied ? 'Copied!' : 'Copy Brief to Clipboard'}
+            </button>
+            <div className="wf2c-results-stats">
+              {step.siteAnalysis?.contentPageCount} pages &middot;{' '}
+              {(step.assetManifest?.images.length ?? 0) + (step.assetManifest?.videos.length ?? 0) + (step.assetManifest?.fonts.length ?? 0)} assets &middot;{' '}
+              ~{Math.round(step.briefResult.estimatedTokens / 1000)}K tokens
+            </div>
+            <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
+            <button
+              className="btn-primary"
+              onClick={handleRetry}
+              style={{ width: '100%', marginTop: '8px', opacity: 0.7 }}
+            >
+              Start Over
+            </button>
+          </div>
+        )}
+
+        {step.kind === 'done' && !step.briefResult && (
           <div className="wf2c-progress wf2c-progress-done">
             Done — extracted {step.fileCount} files
-            {step.assetManifest && (
-              <>, {step.assetManifest.images.length + step.assetManifest.videos.length + step.assetManifest.fonts.length} assets cataloged</>
-            )}
-            {step.siteAnalysis && (
-              <>, {step.siteAnalysis.contentPageCount} pages analyzed{step.siteAnalysis.cmsTemplateCount > 0 && ` (${step.siteAnalysis.cmsTemplateCount} CMS templates)`}</>
-            )}
           </div>
         )}
 

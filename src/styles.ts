@@ -135,4 +135,34 @@ export const PLUGIN_CSS = `
   to { transform: rotate(360deg); }
 }
 
+.wf2c-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+.wf2c-results-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.wf2c-results-stats {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.wf2c-results-path {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
 `;
