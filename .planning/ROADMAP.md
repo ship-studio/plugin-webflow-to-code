@@ -71,7 +71,11 @@ Plans:
   3. Webflow component classes (`.w-nav`, `.w-dropdown`, `.w-slider`, `.w-tabs`, `.w-form`, `.w-lightbox`, `.w-embed`) are recognized and mapped to semantic descriptions with migration notes
   4. Pages sharing the same nav/footer pattern are flagged as "build once as shared component"
   5. CMS template pages (`detail_*.html` or containing `{{wf ...}}` placeholders) are identified and labeled — not treated as real content pages
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 04-01-PLAN.md — Types, page parsing (title, route, sections, CMS detection), and Webflow component registry with tests (TDD)
+- [ ] 04-02-PLAN.md — Shared layout detection (data-w-id + class fallback) and buildSiteAnalysis orchestrator (TDD)
+- [ ] 04-03-PLAN.md — ZipStep 'analyzing' variant and MainView integration with progress and results display
 
 ### Phase 5: Brief Generation and Full UI
 **Goal**: A complete, mode-aware `brief.md` is generated and written to `.shipstudio/assets/`, and the full plugin UI — mode selector, pipeline orchestration, results panel — is wired together end to end
@@ -95,5 +99,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
 | 2. Zip Input and Extraction | 2/2 | Complete    | 2026-03-16 |
 | 3. Asset Pipeline | 2/2 | Complete    | 2026-03-16 |
-| 4. Site Analysis | 0/TBD | Not started | - |
+| 4. Site Analysis | 0/3 | Not started | - |
 | 5. Brief Generation and Full UI | 0/TBD | Not started | - |
