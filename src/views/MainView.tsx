@@ -3,6 +3,7 @@ import { usePluginContext } from '../context';
 import { pickZipFile, extractAndVerify, buildExtractDir } from '../zip/extract';
 import { validateWebflowExport } from '../zip/discover';
 import { copyAssets } from '../assets/copy';
+import { buildSiteAnalysis } from '../analysis/analyze';
 import type { ZipStep } from '../zip/types';
 
 type Mode = 'pixel-perfect' | 'best-site';
@@ -69,8 +70,22 @@ export function MainView() {
       return;
     }
 
-    // Step 5: Done
-    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest });
+    // Step 5: Analyze pages
+    setStep({ kind: 'analyzing', pageCount: 0 });
+    let siteAnalysis;
+    try {
+      siteAnalysis = await buildSiteAnalysis(shell, manifest.entries, extractDir, (label) => {
+        const countMatch = label.match(/(\d+)\/(\d+)/);
+        const current = countMatch ? parseInt(countMatch[1], 10) : 0;
+        setStep({ kind: 'analyzing', pageCount: current });
+      });
+    } catch (err: any) {
+      setStep({ kind: 'error', message: err?.message || 'Analysis failed' });
+      return;
+    }
+
+    // Step 6: Done
+    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest, siteAnalysis });
   }, [ctx]);
 
   const handleRetry = useCallback(() => {
@@ -134,11 +149,18 @@ export function MainView() {
           <div className="wf2c-progress">{step.label}</div>
         )}
 
+        {step.kind === 'analyzing' && (
+          <div className="wf2c-progress">Analyzing pages... ({step.pageCount})</div>
+        )}
+
         {step.kind === 'done' && (
           <div className="wf2c-progress wf2c-progress-done">
             Done — extracted {step.fileCount} files
             {step.assetManifest && (
               <>, {step.assetManifest.images.length + step.assetManifest.videos.length + step.assetManifest.fonts.length} assets cataloged</>
+            )}
+            {step.siteAnalysis && (
+              <>, {step.siteAnalysis.contentPageCount} pages analyzed{step.siteAnalysis.cmsTemplateCount > 0 && ` (${step.siteAnalysis.cmsTemplateCount} CMS templates)`}</>
             )}
           </div>
         )}

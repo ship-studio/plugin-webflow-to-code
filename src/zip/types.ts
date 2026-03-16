@@ -1,4 +1,5 @@
 import type { AssetManifest } from '../assets/types';
+import type { SiteAnalysis } from '../analysis/types';
 
 export type ZipStep =
   | { kind: 'idle' }
@@ -6,7 +7,8 @@ export type ZipStep =
   | { kind: 'extracting'; fileCount: number }
   | { kind: 'validating' }
   | { kind: 'copying'; label: string }
-  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number; assetManifest?: AssetManifest }
+  | { kind: 'analyzing'; pageCount: number }
+  | { kind: 'done'; zipPath: string; extractDir: string; fileCount: number; assetManifest?: AssetManifest; siteAnalysis?: SiteAnalysis }
   | { kind: 'error'; message: string };
 
 export interface ZipManifest {
