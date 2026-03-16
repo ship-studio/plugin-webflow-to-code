@@ -29,7 +29,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Modal renders with externalized React (no bundled React copy — verified via bundle inspection)
   3. `dist/index.js` is built via Vite and committed to git; Ship Studio can load the plugin from a git clone with no build step
   4. Plugin file structure matches plugin-starter conventions (plugin.json, vite.config.ts, tsconfig.json, src/index.tsx)
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold plugin config, source files, build output, and modal shell with mode selector preview
 
 ### Phase 2: Zip Input and Extraction
 **Goal**: Users can select a Webflow export zip, the plugin extracts it to a temp directory, validates it is a real Webflow export, and shows named progress steps throughout
@@ -84,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffolding | 0/TBD | Not started | - |
+| 1. Plugin Scaffolding | 0/1 | Planning complete | - |
 | 2. Zip Input and Extraction | 0/TBD | Not started | - |
 | 3. Asset Pipeline | 0/TBD | Not started | - |
 | 4. Site Analysis | 0/TBD | Not started | - |
