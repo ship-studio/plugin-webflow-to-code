@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Zip Input & Extraction
 
-- [ ] **ZIP-01**: User can select a Webflow export .zip via file picker in the plugin modal
-- [ ] **ZIP-02**: Plugin extracts zip contents to a temp directory via shell.exec unzip
-- [ ] **ZIP-03**: Plugin validates zip structure (checks for index.html, CSS files) and shows clear error for malformed exports
+- [x] **ZIP-01**: User can select a Webflow export .zip via file picker in the plugin modal
+- [x] **ZIP-02**: Plugin extracts zip contents to a temp directory via shell.exec unzip
+- [x] **ZIP-03**: Plugin validates zip structure (checks for index.html, CSS files) and shows clear error for malformed exports
 - [ ] **ZIP-04**: Plugin shows step-by-step progress labels during processing ("Extracting zip...", "Copying assets...", "Analyzing pages...", "Generating brief...")
 
 ### Asset Management
@@ -71,9 +71,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZIP-01 | Phase 2 | Pending |
-| ZIP-02 | Phase 2 | Pending |
-| ZIP-03 | Phase 2 | Pending |
+| ZIP-01 | Phase 2 | Complete |
+| ZIP-02 | Phase 2 | Complete |
+| ZIP-03 | Phase 2 | Complete |
 | ZIP-04 | Phase 2 | Pending |
 | ASST-01 | Phase 3 | Pending |
 | ASST-02 | Phase 3 | Pending |
