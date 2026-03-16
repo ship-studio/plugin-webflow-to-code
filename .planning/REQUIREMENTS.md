@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PAGE-01**: Plugin discovers all HTML pages from the export and extracts title, route, and filename
 - [x] **PAGE-02**: Plugin generates a per-page structural breakdown (major sections: nav, hero, features, footer, etc.)
 - [x] **PAGE-03**: Brief references original CSS files by path rather than re-extracting design tokens
-- [ ] **PAGE-04**: Plugin detects shared layout patterns (common nav/footer) across pages and flags them as "build once as shared component"
+- [x] **PAGE-04**: Plugin detects shared layout patterns (common nav/footer) across pages and flags them as "build once as shared component"
 
 ### Webflow Intelligence
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAGE-01 | Phase 4 | Complete |
 | PAGE-02 | Phase 4 | Complete |
 | PAGE-03 | Phase 4 | Complete |
-| PAGE-04 | Phase 4 | Pending |
+| PAGE-04 | Phase 4 | Complete |
 | WFLW-01 | Phase 4 | Complete |
 | WFLW-02 | Phase 4 | Complete |
 | WFLW-03 | Phase 4 | Complete |
