@@ -13,7 +13,7 @@ Five phases that build the pipeline from the outside in: establish a working plu
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Plugin Scaffolding** - Working plugin shell that loads in Ship Studio with a modal and correct build setup
-- [ ] **Phase 2: Zip Input and Extraction** - User can select a Webflow zip, extract it, and see step-by-step progress with error handling
+- [x] **Phase 2: Zip Input and Extraction** - User can select a Webflow zip, extract it, and see step-by-step progress with error handling (completed 2026-03-16)
 - [ ] **Phase 3: Asset Pipeline** - All media assets copied to `.shipstudio/assets/` with a typed manifest including responsive variant grouping
 - [ ] **Phase 4: Site Analysis** - Full HTML parsing — page discovery, structural breakdowns, Webflow component detection, shared layout identification
 - [ ] **Phase 5: Brief Generation and Full UI** - Mode-aware `brief.md` written to disk with complete modal UI, mode selector, results panel, and token estimate
@@ -43,10 +43,10 @@ Plans:
   3. Plugin validates that the zip contains `index.html` and CSS files; shows a clear error message if it does not
   4. User sees named progress labels during processing ("Extracting zip...", "Copying assets...", "Analyzing pages...", "Generating brief...")
   5. Extracted file count is verified against the `unzip -l` manifest (silent extraction failure is caught)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 02-01-PLAN.md — Zip extraction core: types, file picker, extraction with count verification, Webflow validation, and unit tests
-- [ ] 02-02-PLAN.md — Wire MainView UI with extraction pipeline, progress labels, inline errors, and retry
+- [x] 02-01-PLAN.md — Zip extraction core: types, file picker, extraction with count verification, Webflow validation, and unit tests
+- [x] 02-02-PLAN.md — Wire MainView UI with extraction pipeline, progress labels, inline errors, and retry
 
 ### Phase 3: Asset Pipeline
 **Goal**: All media assets from the Webflow export are copied to `.shipstudio/assets/` and described in a typed manifest that groups responsive image variants
@@ -90,7 +90,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
-| 2. Zip Input and Extraction | 0/2 | In progress | - |
+| 2. Zip Input and Extraction | 2/2 | Complete   | 2026-03-16 |
 | 3. Asset Pipeline | 0/TBD | Not started | - |
 | 4. Site Analysis | 0/TBD | Not started | - |
 | 5. Brief Generation and Full UI | 0/TBD | Not started | - |
