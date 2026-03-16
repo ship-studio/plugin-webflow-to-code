@@ -56,7 +56,7 @@ Plans:
   1. All images, SVGs, fonts, and videos from the zip appear in `.shipstudio/assets/` after extraction
   2. The asset manifest lists every copied asset with its path, inferred purpose, and referencing page(s)
   3. Responsive image variants (e.g., `-p-500`, `-p-800`) are grouped under a single base-name entry in the manifest — a 50-image site shows 50 entries, not 300+
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 03-01-PLAN.md — Asset types and manifest builder with responsive variant grouping, video grouping, purpose inference (TDD)
 - [ ] 03-02-PLAN.md — Copy orchestration, ZipStep extension, MainView integration with progress labels
@@ -94,6 +94,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
 | 2. Zip Input and Extraction | 2/2 | Complete    | 2026-03-16 |
-| 3. Asset Pipeline | 0/2 | Planning complete | - |
+| 3. Asset Pipeline | 1/2 | In Progress|  |
 | 4. Site Analysis | 0/TBD | Not started | - |
 | 5. Brief Generation and Full UI | 0/TBD | Not started | - |
