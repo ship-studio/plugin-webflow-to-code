@@ -71,32 +71,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZIP-01 | TBD | Pending |
-| ZIP-02 | TBD | Pending |
-| ZIP-03 | TBD | Pending |
-| ZIP-04 | TBD | Pending |
-| ASST-01 | TBD | Pending |
-| ASST-02 | TBD | Pending |
-| ASST-03 | TBD | Pending |
-| PAGE-01 | TBD | Pending |
-| PAGE-02 | TBD | Pending |
-| PAGE-03 | TBD | Pending |
-| PAGE-04 | TBD | Pending |
-| WFLW-01 | TBD | Pending |
-| WFLW-02 | TBD | Pending |
-| WFLW-03 | TBD | Pending |
-| BREF-01 | TBD | Pending |
-| BREF-02 | TBD | Pending |
-| BREF-03 | TBD | Pending |
-| BREF-04 | TBD | Pending |
-| INFR-01 | TBD | Pending |
-| INFR-02 | TBD | Pending |
+| ZIP-01 | Phase 2 | Pending |
+| ZIP-02 | Phase 2 | Pending |
+| ZIP-03 | Phase 2 | Pending |
+| ZIP-04 | Phase 2 | Pending |
+| ASST-01 | Phase 3 | Pending |
+| ASST-02 | Phase 3 | Pending |
+| ASST-03 | Phase 3 | Pending |
+| PAGE-01 | Phase 4 | Pending |
+| PAGE-02 | Phase 4 | Pending |
+| PAGE-03 | Phase 4 | Pending |
+| PAGE-04 | Phase 4 | Pending |
+| WFLW-01 | Phase 4 | Pending |
+| WFLW-02 | Phase 4 | Pending |
+| WFLW-03 | Phase 4 | Pending |
+| BREF-01 | Phase 5 | Pending |
+| BREF-02 | Phase 5 | Pending |
+| BREF-03 | Phase 5 | Pending |
+| BREF-04 | Phase 5 | Pending |
+| INFR-01 | Phase 1 | Pending |
+| INFR-02 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 ⚠️
+- Mapped to phases: 20
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation — all 20 requirements mapped*
