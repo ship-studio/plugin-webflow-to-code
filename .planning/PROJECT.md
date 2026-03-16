@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Ship Studio plugin that takes a Webflow site export (.zip) and prepares everything a coding agent (Claude Code, Codex, etc.) needs to recreate that site in the user's framework of choice — whether that's Next.js, Astro, plain HTML, or anything else. The plugin doesn't do the conversion itself; it extracts assets, documents the structure, and generates a comprehensive brief that guides the agent to produce a result that looks like the original Webflow site.
+A Ship Studio plugin that takes a Webflow site export (.zip) and generates a comprehensive migration brief for coding agents (Claude Code, Codex, etc.). The plugin extracts assets, analyzes page structure, detects Webflow components, identifies shared layouts, flags CMS templates, and produces a mode-aware `brief.md` that guides the agent to recreate the site in any framework. Shipped as v1.0 with 3,755 lines of TypeScript, 145 tests, and a 48KB bundle.
 
 ## Core Value
 
@@ -12,63 +12,66 @@ Users get the "aha moment" — after running the plugin and letting their coding
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ User can select a Webflow export .zip via native macOS file picker — v1.0
+- ✓ Plugin extracts and processes all contents from the Webflow .zip — v1.0
+- ✓ All media assets (images, SVGs, videos, fonts) copied to `.shipstudio/assets/` — v1.0
+- ✓ All HTML pages included with no filtering — v1.0
+- ✓ Plugin extracts page structure: pages, routes, shared layout/nav/footer patterns — v1.0
+- ✓ CSS referenced by path (not re-extracted as tokens) — v1.0
+- ✓ Per-page structural breakdown (sections, components) — v1.0
+- ✓ Two modes: "Pixel Perfect" and "Best Site" with mode-specific instructions — v1.0
+- ✓ Agent-agnostic brief.md with behavioral instructions — v1.0
+- ✓ Multi-session migration design (Session Tracker + MIGRATION_LOG.md format) — v1.0
+- ✓ Brief documents all assets with paths and purposes — v1.0
+- ✓ Plugin follows Ship Studio conventions (toolbar slot, externalized React, committed dist/) — v1.0
 
 ### Active
 
-- [ ] User can select a Webflow export .zip via file picker in the plugin modal
-- [ ] Plugin extracts and processes all contents from the Webflow .zip (HTML pages, CSS, JS, images, videos, fonts)
-- [ ] All media assets (images, SVGs, videos, fonts) are copied to `.shipstudio/assets/`
-- [ ] All HTML pages from the export are included — no page filtering
-- [ ] Plugin extracts page structure: list of pages, their routes, shared layout/nav/footer patterns
-- [ ] Plugin extracts CSS reference: points the agent at the original CSS files rather than re-extracting tokens
-- [ ] Plugin provides a page-by-page structural breakdown (HTML structure, key sections, component patterns)
-- [ ] User chooses between two modes before extraction: "Pixel Perfect" (exact remake, highest fidelity) or "Best Site" (use export as a brief to build the best possible site)
-- [ ] Plugin generates a `brief.md` tailored to the selected mode with clear behavioral instructions for the coding agent
-- [ ] Brief is agent-agnostic — works with Claude Code, Codex, or any coding agent
-- [ ] Brief is designed for multi-session migration: documents everything so the agent can plan, log progress, and pick up where it left off across sessions
-- [ ] Brief documents all assets with their locations and purposes
-- [ ] Plugin follows Ship Studio plugin conventions (toolbar slot, shell.exec for file ops, plugin context API, externalized React, committed dist/)
+(None — all v1.0 requirements validated)
 
 ### Out of Scope
 
 - Actual code conversion — the plugin prepares the brief, the coding agent does the work
-- Framework detection or framework-specific output — the brief is framework-agnostic, the agent adapts
-- Design token re-extraction from CSS — the raw CSS files serve as the reference
-- Page filtering/selection UI — all pages are always included
+- Framework detection or framework-specific output — brief is framework-agnostic
+- Design token re-extraction from CSS — raw CSS files serve as reference
+- Page filtering/selection UI — all pages always included
 - Agent-specific tailoring — brief stays universal
-- Video transcoding or image optimization — assets are copied as-is
+- Video transcoding or image optimization — assets copied as-is
+- Inspiration mode (third mode) — deferred to v1.1
+- Webflow CMS data export via API — requires OAuth, deferred to v2.0
 
 ## Context
 
-- Built on the Ship Studio plugin architecture (see plugin-starter repo)
-- Follows patterns established by the Figma plugin (sibling project): file picker → extraction → brief generation → assets to `.shipstudio/assets/`
-- Webflow exports contain: HTML pages, CSS (normalize + components + site-specific), bundled JS, images (with responsive variants), videos (MP4/WebM/MOV), and sometimes legal pages
-- Webflow HTML uses specific class conventions (`.w-nav`, `.w-dropdown`, `.w-embed`, `.w-button`, `.w-form`, etc.) and data attributes (`data-wf-page`, `data-wf-site`)
-- The brief must be comprehensive enough that an agent can work across multiple sessions without losing context
-- Two distinct modes serve different user needs:
-  - **Pixel Perfect**: emphasis on exact visual reproduction, fixed dimensions, preserving the Webflow layout precisely
-  - **Best Site**: use the Webflow export as inspiration/reference to build the best possible production site with clean, semantic, responsive code
+Shipped v1.0 with 3,755 LOC TypeScript across 20 source files.
+Tech stack: React 19 (externalized), Vite 6, TypeScript 5.6, vitest.
+Plugin bundle: 48KB (dist/index.js).
+Native macOS file picker via osascript (Tauri WebView doesn't expose filesystem paths from `<input type="file">`).
+DOMParser (browser API) for HTML analysis.
+145 unit tests covering extraction, validation, manifest building, page analysis, brief generation.
 
 ## Constraints
 
-- **Plugin Architecture**: Must use Ship Studio plugin conventions — toolbar slot, React externalized via window globals, shell.exec for filesystem access, no direct FS or network APIs
-- **No Build Step for Users**: dist/index.js must be committed to git — Ship Studio clones plugins without running build
-- **File Access**: All file operations go through shell.exec (unzip, cp, cat, etc.)
-- **Bundle Size**: Keep the plugin bundle small — loaded over IPC
-- **Asset Storage**: Assets go to `.shipstudio/assets/` per Ship Studio convention
+- **Plugin Architecture**: Ship Studio conventions — toolbar slot, React externalized via window globals, shell.exec for filesystem access
+- **No Build Step for Users**: dist/index.js committed to git
+- **File Access**: All file operations through shell.exec
+- **macOS Only**: osascript file picker is macOS-specific
+- **Asset Storage**: Assets go to `.shipstudio/assets/`
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| File picker input (not drag-drop) | Consistent with Ship Studio modal patterns, simpler implementation | — Pending |
-| Mode selection before extraction | Brief is tailored from the start, no wasted processing | — Pending |
-| All pages included, no filtering | Simplifies UX, the agent can handle selective migration via multi-session planning | — Pending |
-| Agent-agnostic brief | Maximum compatibility, no lock-in to specific coding tools | — Pending |
-| Raw CSS reference over token extraction | Webflow CSS is already well-structured; re-extracting adds complexity without clear benefit | — Pending |
-| Copy all media including videos | Complete migration package, even if large — the agent needs everything available | — Pending |
-| Multi-session design in brief | Users may have large sites that take multiple agent sessions to migrate | — Pending |
+| osascript for file picker (not HTML input) | Tauri WebView doesn't expose filesystem paths from `<input type="file">` | ✓ Good — works reliably |
+| Mode selection before extraction | Brief tailored from the start | ✓ Good |
+| All pages included, no filtering | Agent manages migration order via Session Tracker | ✓ Good |
+| Agent-agnostic brief | Maximum compatibility | ✓ Good |
+| Raw CSS reference over token extraction | Webflow CSS is already well-structured | ✓ Good |
+| Copy all media including videos | Complete migration package | ✓ Good |
+| DOMParser for HTML analysis | Zero-cost browser API, handles Webflow HTML correctly | ✓ Good |
+| data-w-id for shared layout detection | Byte-identical UUIDs across pages — reliable signal | ✓ Good |
+| Three CMS detection signals | detail_ prefix, w-dyn-bind-empty, title starting with pipe | ✓ Good |
+| base64 encoding for brief file write | Avoids shell metacharacter issues in markdown content | ✓ Good |
+| btn-primary host class (not custom) | Custom CSS caused white-on-white text; host class has correct theme colors | ✓ Good — learned from Phase 1 bug |
 
 ---
-*Last updated: 2026-03-16 after initialization*
+*Last updated: 2026-03-16 after v1.0 milestone*
