@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Plugin Scaffolding** - Working plugin shell that loads in Ship Studio with a modal and correct build setup
 - [x] **Phase 2: Zip Input and Extraction** - User can select a Webflow zip, extract it, and see step-by-step progress with error handling (completed 2026-03-16)
-- [ ] **Phase 3: Asset Pipeline** - All media assets copied to `.shipstudio/assets/` with a typed manifest including responsive variant grouping
+- [x] **Phase 3: Asset Pipeline** - All media assets copied to `.shipstudio/assets/` with a typed manifest including responsive variant grouping (completed 2026-03-16)
 - [ ] **Phase 4: Site Analysis** - Full HTML parsing — page discovery, structural breakdowns, Webflow component detection, shared layout identification
 - [ ] **Phase 5: Brief Generation and Full UI** - Mode-aware `brief.md` written to disk with complete modal UI, mode selector, results panel, and token estimate
 
@@ -56,7 +56,7 @@ Plans:
   1. All images, SVGs, fonts, and videos from the zip appear in `.shipstudio/assets/` after extraction
   2. The asset manifest lists every copied asset with its path, inferred purpose, and referencing page(s)
   3. Responsive image variants (e.g., `-p-500`, `-p-800`) are grouped under a single base-name entry in the manifest — a 50-image site shows 50 entries, not 300+
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 03-01-PLAN.md — Asset types and manifest builder with responsive variant grouping, video grouping, purpose inference (TDD)
 - [ ] 03-02-PLAN.md — Copy orchestration, ZipStep extension, MainView integration with progress labels
@@ -94,6 +94,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
 | 2. Zip Input and Extraction | 2/2 | Complete    | 2026-03-16 |
-| 3. Asset Pipeline | 1/2 | In Progress|  |
+| 3. Asset Pipeline | 2/2 | Complete   | 2026-03-16 |
 | 4. Site Analysis | 0/TBD | Not started | - |
 | 5. Brief Generation and Full UI | 0/TBD | Not started | - |

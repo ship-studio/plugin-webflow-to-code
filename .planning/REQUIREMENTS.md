@@ -16,7 +16,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Asset Management
 
-- [ ] **ASST-01**: Plugin copies all media assets (images, SVGs, fonts, videos) to `.shipstudio/assets/`
+- [x] **ASST-01**: Plugin copies all media assets (images, SVGs, fonts, videos) to `.shipstudio/assets/`
 - [x] **ASST-02**: Brief contains an asset manifest table listing every copied asset with path, inferred purpose, and referencing page(s)
 - [x] **ASST-03**: Plugin groups responsive image variants (-p-500, -p-800, etc.) as srcset families in the asset manifest
 
@@ -75,7 +75,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ZIP-02 | Phase 2 | Complete |
 | ZIP-03 | Phase 2 | Complete |
 | ZIP-04 | Phase 2 | Complete |
-| ASST-01 | Phase 3 | Pending |
+| ASST-01 | Phase 3 | Complete |
 | ASST-02 | Phase 3 | Complete |
 | ASST-03 | Phase 3 | Complete |
 | PAGE-01 | Phase 4 | Pending |
