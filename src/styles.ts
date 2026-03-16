@@ -94,4 +94,45 @@ export const PLUGIN_CSS = `
   line-height: 1.3;
 }
 
+.wf2c-progress {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wf2c-progress::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent, #0d99ff);
+  border-radius: 50%;
+  animation: wf2c-spin 0.6s linear infinite;
+}
+
+.wf2c-progress-done {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.wf2c-progress-done::before {
+  content: none;
+}
+
+.wf2c-error {
+  font-size: 13px;
+  color: #e53935;
+  padding: 12px;
+  background: rgba(229, 57, 53, 0.08);
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+@keyframes wf2c-spin {
+  to { transform: rotate(360deg); }
+}
+
 `;
