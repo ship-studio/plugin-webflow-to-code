@@ -105,11 +105,14 @@ export async function parsePage(
   });
 
   // Nav and footer wfIds for shared layout detection
-  const navWfId = doc.querySelector('.w-nav')?.getAttribute('data-w-id') ?? null;
-  const footerWfId =
-    doc.querySelector('footer')?.getAttribute('data-w-id') ??
-    doc.querySelector('[class*="footer_"]')?.getAttribute('data-w-id') ??
-    null;
+  const navEl = doc.querySelector('.w-nav');
+  const navWfId = navEl?.getAttribute('data-w-id') ?? null;
+  const navClassName = navEl?.className ?? null;
+
+  const footerEl =
+    doc.querySelector('footer') ?? doc.querySelector('[class*="footer_"]');
+  const footerWfId = footerEl?.getAttribute('data-w-id') ?? null;
+  const footerClassName = footerEl?.className ?? null;
 
   return {
     filename,
@@ -123,5 +126,7 @@ export async function parsePage(
     hasIx2Interactions: detectInteractions(doc),
     navWfId,
     footerWfId,
+    navClassName,
+    footerClassName,
   };
 }

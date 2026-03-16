@@ -10,6 +10,8 @@ export interface PageInfo {
   hasIx2Interactions: boolean;
   navWfId: string | null;
   footerWfId: string | null;
+  navClassName: string | null;
+  footerClassName: string | null;
 }
 
 export interface SectionItem {
