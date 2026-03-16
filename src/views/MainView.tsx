@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { usePluginContext } from '../context';
 import { pickZipFile, extractAndVerify, buildExtractDir } from '../zip/extract';
 import { validateWebflowExport } from '../zip/discover';
+import { copyAssets } from '../assets/copy';
 import type { ZipStep } from '../zip/types';
 
 type Mode = 'pixel-perfect' | 'best-site';
@@ -56,8 +57,20 @@ export function MainView() {
       return;
     }
 
-    // Step 4: Done
-    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount });
+    // Step 4: Copy assets
+    setStep({ kind: 'copying', label: 'Copying assets...' });
+    let assetManifest;
+    try {
+      assetManifest = await copyAssets(shell, extractDir, projectPath, manifest.entries, (label) => {
+        setStep({ kind: 'copying', label });
+      });
+    } catch (err: any) {
+      setStep({ kind: 'error', message: err?.message || 'Asset copy failed' });
+      return;
+    }
+
+    // Step 5: Done
+    setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest });
   }, [ctx]);
 
   const handleRetry = useCallback(() => {
@@ -117,9 +130,16 @@ export function MainView() {
           <div className="wf2c-progress">Validating export...</div>
         )}
 
+        {step.kind === 'copying' && (
+          <div className="wf2c-progress">{step.label}</div>
+        )}
+
         {step.kind === 'done' && (
           <div className="wf2c-progress wf2c-progress-done">
             Done — extracted {step.fileCount} files
+            {step.assetManifest && (
+              <>, {step.assetManifest.images.length + step.assetManifest.videos.length + step.assetManifest.fonts.length} assets cataloged</>
+            )}
           </div>
         )}
 
