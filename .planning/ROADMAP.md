@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Modal renders with externalized React (no bundled React copy — verified via bundle inspection)
   3. `dist/index.js` is built via Vite and committed to git; Ship Studio can load the plugin from a git clone with no build step
   4. Plugin file structure matches plugin-starter conventions (plugin.json, vite.config.ts, tsconfig.json, src/index.tsx)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [x] 01-01-PLAN.md — Scaffold plugin config, source files, build output, and modal shell with mode selector preview
 
@@ -86,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffolding | 1/1 | Complete | 2026-03-16 |
+| 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
 | 2. Zip Input and Extraction | 0/TBD | Not started | - |
 | 3. Asset Pipeline | 0/TBD | Not started | - |
 | 4. Site Analysis | 0/TBD | Not started | - |
