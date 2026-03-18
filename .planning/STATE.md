@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Migration Tracker
 status: planning
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-18T14:12:09.160Z"
+stopped_at: "Completed 07-02-PLAN.md (awaiting checkpoint Task 3: human-verify in Ship Studio)"
+last_updated: "2026-03-18T14:16:15.544Z"
 last_activity: 2026-03-18 — Roadmap created for v1.1 (Phases 6-8)
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-migration-plan-schema-and-brief-integration P01 | 2min | 2 tasks | 5 files |
 | Phase 06-migration-plan-schema-and-brief-integration P02 | 8min | 2 tasks | 3 files |
 | Phase 07-progress-tracking-ui P01 | 2min | 2 tasks | 2 files |
+| Phase 07-progress-tracking-ui P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 07-01]: loadMigrationPlan returns null on both shell failure and JSON parse error — consistent null-safe API
 - [Phase 07-01]: Leaf-counting rule: page items with children use children as leaves; childless items are themselves leaves
 - [Phase 07-01]: computePageProgress handles childless item as 0/1 or 1/1 — safe for progress bar rendering
+- [Phase 07-progress-tracking-ui]: MigrationProgress is sibling of wf2c-results div (not nested) — clean separation between brief results and plan tracking
+- [Phase 07-progress-tracking-ui]: pollError only activates when hadPlan.current is true — prevents false error flash before plan file first written
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T14:12:09.158Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-18T14:16:15.542Z
+Stopped at: Completed 07-02-PLAN.md (awaiting checkpoint Task 3: human-verify in Ship Studio)
 Resume file: None
