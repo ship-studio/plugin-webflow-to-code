@@ -102,7 +102,7 @@ Plans:
   2. The schema includes all pages with nested sections/components, each carrying a status field (`pending`, `in-progress`, `complete`)
   3. Shared components (nav, footer) appear as top-level items in the plan schema, not nested under a page
   4. The brief instructs the agent to update each item's status as it completes it — so the file reflects live progress
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — Migration plan types, skeleton generator, and I/O with TDD (src/plan/ module)
@@ -149,6 +149,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Asset Pipeline | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. Site Analysis | v1.0 | 3/3 | Complete | 2026-03-16 |
 | 5. Brief Generation and Full UI | v1.0 | 2/2 | Complete | 2026-03-16 |
-| 6. Migration Plan Schema and Brief Integration | 1/2 | In Progress|  | - |
+| 6. Migration Plan Schema and Brief Integration | 2/2 | Complete   | 2026-03-18 | - |
 | 7. Progress Tracking UI | v1.1 | 0/2 | Not started | - |
 | 8. Session Handoff | v1.1 | 0/2 | Not started | - |

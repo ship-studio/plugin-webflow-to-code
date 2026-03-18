@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Migration Tracker
 status: planning
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-18T13:23:03.251Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-18T13:27:07.640Z"
 last_activity: 2026-03-18 — Roadmap created for v1.1 (Phases 6-8)
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 06-migration-plan-schema-and-brief-integration P01 | 2min | 2 tasks | 5 files |
+| Phase 06-migration-plan-schema-and-brief-integration P02 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - "Continue Migration" copies a prompt pointing to plan file + brief (not full brief in clipboard)
 - [Phase 06-migration-plan-schema-and-brief-integration]: migration-plan.json stored at .shipstudio/migration-plan.json (not under /assets/) — operational state file
 - [Phase 06-migration-plan-schema-and-brief-integration]: saveMigrationPlan includes mkdir -p safety guard; utility pages excluded from plan; CMS templates no children
+- [Phase 06-migration-plan-schema-and-brief-integration]: Migration Plan brief section is static (no params) — plan file is the dynamic content, brief explains how to use it
+- [Phase 06-migration-plan-schema-and-brief-integration]: Plan generation shares Step 6 try/catch with brief — plan write failure blocks the done step, no new error state needed
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:23:03.249Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-18T13:27:07.639Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
