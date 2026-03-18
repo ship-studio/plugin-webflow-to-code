@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { usePluginContext } from '../context';
 import { pickZipFile, extractAndVerify, buildExtractDir } from '../zip/extract';
 import { validateWebflowExport } from '../zip/discover';
@@ -8,6 +8,7 @@ import { generateBrief } from '../brief/generate';
 import { saveBrief, copyToClipboard } from '../brief/io';
 import { generateMigrationPlan } from '../plan/generate';
 import { saveMigrationPlan } from '../plan/io';
+import { loadMigrationPlan } from '../plan/read';
 import { MigrationProgress } from '../components/MigrationProgress';
 import type { BriefResult, PreserveOption } from '../brief/types';
 import { PRESERVE_OPTIONS, DEFAULT_PRESERVE } from '../brief/types';
@@ -65,6 +66,17 @@ export function MainView() {
 
   const [step, setStep] = useState<ZipStep>({ kind: 'idle' });
   const [copied, setCopied] = useState(false);
+  const [hasExistingPlan, setHasExistingPlan] = useState(false);
+
+  // On mount, check if a migration plan already exists from a previous session
+  useEffect(() => {
+    const shell = shellRef.current;
+    const projectPath = ctx?.project?.path;
+    if (!shell || !projectPath) return;
+    loadMigrationPlan(shell, projectPath).then((plan) => {
+      if (plan !== null) setHasExistingPlan(true);
+    });
+  }, [ctx]);
 
   const togglePreserve = useCallback((key: PreserveOption) => {
     setPreserve((prev) => {
@@ -187,7 +199,7 @@ export function MainView() {
     }
   }, [step]);
 
-  const showModeSelector = step.kind === 'idle' || step.kind === 'picking' || step.kind === 'error';
+  const showModeSelector = (step.kind === 'idle' && !hasExistingPlan) || step.kind === 'picking' || step.kind === 'error';
   const pageCount = step.kind === 'done' ? (step.siteAnalysis?.contentPageCount ?? 0) : 0;
   const isMultiSession = pageCount > 3;
 
@@ -244,10 +256,26 @@ export function MainView() {
       )}
 
       <div style={{ marginTop: '16px' }}>
-        {step.kind === 'idle' && (
+        {step.kind === 'idle' && !hasExistingPlan && (
           <button className="btn-primary" onClick={handleSelectZip} style={{ width: '100%' }}>
             Select Webflow Export (.zip)
           </button>
+        )}
+
+        {step.kind === 'idle' && hasExistingPlan && (
+          <>
+            <MigrationProgress
+              shell={shellRef.current!}
+              projectPath={ctx?.project?.path ?? ''}
+            />
+            <button
+              className="btn-primary"
+              onClick={() => { setHasExistingPlan(false); }}
+              style={{ width: '100%', marginTop: '12px' }}
+            >
+              New Migration
+            </button>
+          </>
         )}
 
         {step.kind === 'picking' && (

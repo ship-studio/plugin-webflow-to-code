@@ -1562,7 +1562,7 @@ function PreserveCheckbox({ label, checked, onToggle }) {
   );
 }
 function MainView() {
-  var _a, _b, _c, _d, _e, _f;
+  var _a, _b, _c, _d, _e, _f, _g;
   const [mode, setMode] = useState("pixel-perfect");
   const [preserve, setPreserve] = useState(new Set(DEFAULT_PRESERVE));
   const [customNotes, setCustomNotes] = useState("");
@@ -1571,6 +1571,16 @@ function MainView() {
   shellRef.current = (ctx == null ? void 0 : ctx.shell) ?? null;
   const [step, setStep] = useState({ kind: "idle" });
   const [copied, setCopied] = useState(false);
+  const [hasExistingPlan, setHasExistingPlan] = useState(false);
+  useEffect(() => {
+    var _a2;
+    const shell = shellRef.current;
+    const projectPath = (_a2 = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a2.path;
+    if (!shell || !projectPath) return;
+    loadMigrationPlan(shell, projectPath).then((plan) => {
+      if (plan !== null) setHasExistingPlan(true);
+    });
+  }, [ctx]);
   const togglePreserve = useCallback((key) => {
     setPreserve((prev) => {
       const next = new Set(prev);
@@ -1674,7 +1684,7 @@ function MainView() {
     } catch {
     }
   }, [step]);
-  const showModeSelector = step.kind === "idle" || step.kind === "picking" || step.kind === "error";
+  const showModeSelector = step.kind === "idle" && !hasExistingPlan || step.kind === "picking" || step.kind === "error";
   const pageCount = step.kind === "done" ? ((_a = step.siteAnalysis) == null ? void 0 : _a.contentPageCount) ?? 0 : 0;
   const isMultiSession = pageCount > 3;
   return /* @__PURE__ */ jsxs("div", { children: [
@@ -1729,7 +1739,27 @@ function MainView() {
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { style: { marginTop: "16px" }, children: [
-      step.kind === "idle" && /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: handleSelectZip, style: { width: "100%" }, children: "Select Webflow Export (.zip)" }),
+      step.kind === "idle" && !hasExistingPlan && /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: handleSelectZip, style: { width: "100%" }, children: "Select Webflow Export (.zip)" }),
+      step.kind === "idle" && hasExistingPlan && /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx(
+          MigrationProgress,
+          {
+            shell: shellRef.current,
+            projectPath: ((_b = ctx == null ? void 0 : ctx.project) == null ? void 0 : _b.path) ?? ""
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            className: "btn-primary",
+            onClick: () => {
+              setHasExistingPlan(false);
+            },
+            style: { width: "100%", marginTop: "12px" },
+            children: "New Migration"
+          }
+        )
+      ] }),
       step.kind === "picking" && /* @__PURE__ */ jsx("button", { className: "btn-primary", disabled: true, style: { width: "100%" }, children: "Opening file picker..." }),
       step.kind === "extracting" && /* @__PURE__ */ jsxs("div", { className: "wf2c-progress", children: [
         "Extracting zip... (",
@@ -1754,10 +1784,10 @@ function MainView() {
             "Brief ready"
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "wf2c-results-stats", children: [
-            (_b = step.siteAnalysis) == null ? void 0 : _b.contentPageCount,
+            (_c = step.siteAnalysis) == null ? void 0 : _c.contentPageCount,
             " pages ·",
             " ",
-            (((_c = step.assetManifest) == null ? void 0 : _c.images.length) ?? 0) + (((_d = step.assetManifest) == null ? void 0 : _d.videos.length) ?? 0) + (((_e = step.assetManifest) == null ? void 0 : _e.fonts.length) ?? 0),
+            (((_d = step.assetManifest) == null ? void 0 : _d.images.length) ?? 0) + (((_e = step.assetManifest) == null ? void 0 : _e.videos.length) ?? 0) + (((_f = step.assetManifest) == null ? void 0 : _f.fonts.length) ?? 0),
             " assets ·",
             " ",
             "~",
@@ -1796,7 +1826,7 @@ function MainView() {
           MigrationProgress,
           {
             shell: shellRef.current,
-            projectPath: ((_f = ctx == null ? void 0 : ctx.project) == null ? void 0 : _f.path) ?? ""
+            projectPath: ((_g = ctx == null ? void 0 : ctx.project) == null ? void 0 : _g.path) ?? ""
           }
         )
       ] }),
