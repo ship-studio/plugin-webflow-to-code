@@ -992,7 +992,7 @@ ${buildModernizeGuidance(p)}`;
 
 **Goal:** Rebuild the site using modern, semantic, maintainable code while preserving specific design elements from the original.
 
-**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time using the Session Tracker. Pay close attention to which aspects should be preserved vs. modernized.
+**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time, updating migration-plan.json as you go. Pay close attention to which aspects should be preserved vs. modernized.
 ${preserveSection}${modernizeSection}
 
 **During building:**
@@ -1153,65 +1153,54 @@ function buildAssetsSection(assetManifest, mode) {
   }
   return lines.join("\n");
 }
-function buildSessionTrackerSection(pages, sharedLayout) {
-  const contentPages = pages.filter((p) => !p.isCmsTemplate && !p.isUtilityPage);
-  const cmsPages = pages.filter((p) => p.isCmsTemplate);
-  const lines = [
-    "## Session Tracker",
-    "",
-    "This section tracks migration progress across sessions. Update checkboxes as you complete each page.",
-    "",
-    "**Instructions for the agent:**",
-    "1. At the start of each session, read this section to find the next unchecked page.",
-    "2. Complete that page's migration before moving to the next.",
-    "3. Check the box when the page is fully migrated and visually verified.",
-    "4. Before ending a session, update this tracker and commit `MIGRATION_LOG.md` with notes on what was completed and any decisions made.",
-    "",
-    "**Build order (shared components first, then pages):**",
-    ""
-  ];
-  if (sharedLayout.hasSharedNav) {
-    lines.push("- [ ] Shared Nav component (see Shared Layout section)");
-  }
-  if (sharedLayout.hasSharedFooter) {
-    lines.push("- [ ] Shared Footer component (see Shared Layout section)");
-  }
-  for (const page of contentPages) {
-    lines.push(`- [ ] \`${page.route}\` -- ${escapeTableCell(page.title)} (\`${page.filename}\`)`);
-  }
-  if (cmsPages.length > 0) {
-    lines.push("");
-    lines.push("**CMS Templates (after static pages):**");
-    lines.push("");
-    for (const page of cmsPages) {
-      lines.push(
-        `- [ ] \`${page.route}\` -- ${escapeTableCell(page.title)} (\`${page.filename}\`) *(CMS Template -- requires content strategy)*`
-      );
+function buildMigrationPlanSection() {
+  return `## Migration Plan
+
+The file \`.shipstudio/migration-plan.json\` has been created for you. It contains all pages and sections from the site analysis with status \`"pending"\`.
+
+**Before writing any code:**
+1. Read \`.shipstudio/migration-plan.json\` to understand the full scope of work.
+2. Do NOT recreate this file — it already exists. Do not overwrite it with a new structure.
+
+**As you build:**
+- Update each item's \`status\` from \`"pending"\` to \`"in-progress"\` when you start it.
+- Update to \`"complete"\` when you finish and verify it.
+- Use the optional \`notes\` field to record decisions: \`"responsive done, animations pending"\`.
+- You may add new items (e.g., framework setup tasks) but keep the base structure intact.
+
+**Example of the file format:**
+\`\`\`json
+{
+  "version": "1.0",
+  "generatedAt": "2026-03-18",
+  "items": [
+    { "name": "Shared Nav", "type": "shared", "status": "pending" },
+    { "name": "Shared Footer", "type": "shared", "status": "pending" },
+    {
+      "name": "Home",
+      "type": "page",
+      "status": "in-progress",
+      "notes": "Hero section done, working on features",
+      "children": [
+        { "name": "Hero", "type": "section", "status": "complete" },
+        { "name": "Features", "type": "section", "status": "in-progress" },
+        { "name": "Call to Action", "type": "section", "status": "pending" }
+      ]
     }
-  }
-  lines.push("");
-  lines.push("**MIGRATION_LOG.md format:**");
-  lines.push("");
-  lines.push("Create `MIGRATION_LOG.md` in the project root. After each session, append:");
-  lines.push("");
-  lines.push("```");
-  lines.push("## Session {date}");
-  lines.push("**Completed:** {page routes finished this session}");
-  lines.push("**Decisions:** {any implementation choices made}");
-  lines.push("**Next:** {which page to start on next session}");
-  lines.push("```");
-  return lines.join("\n");
+  ]
+}
+\`\`\``;
 }
 function generateBrief(input) {
   const sections = [
     buildMetadataSection(input),
+    buildMigrationPlanSection(),
     buildInstructionsSection(input.mode, input.preserve, input.customNotes),
     buildOverviewSection(input.siteAnalysis),
     buildSharedLayoutSection(input.siteAnalysis.sharedLayout, input.siteAnalysis.pages),
     buildCSSReferenceSection(input.assetManifest.cssFiles, input.mode),
     buildPagesSection(input.siteAnalysis.pages, input.mode),
-    buildAssetsSection(input.assetManifest, input.mode),
-    buildSessionTrackerSection(input.siteAnalysis.pages, input.siteAnalysis.sharedLayout)
+    buildAssetsSection(input.assetManifest, input.mode)
   ].filter(Boolean);
   const markdown = sections.join("\n\n");
   const est = estimateTokens(markdown);
@@ -1249,6 +1238,289 @@ async function copyToClipboard(shell, markdown) {
   if (result.exit_code !== 0) {
     throw new Error(`Clipboard copy failed: ${result.stderr}`);
   }
+}
+function generateMigrationPlan(siteAnalysis) {
+  const items = [];
+  if (siteAnalysis.sharedLayout.hasSharedNav) {
+    items.push({ name: "Shared Nav", type: "shared", status: "pending" });
+  }
+  if (siteAnalysis.sharedLayout.hasSharedFooter) {
+    items.push({ name: "Shared Footer", type: "shared", status: "pending" });
+  }
+  const contentPages = siteAnalysis.pages.filter((p) => !p.isCmsTemplate && !p.isUtilityPage);
+  for (const page of contentPages) {
+    const children = page.sections.map((s) => ({
+      name: s.label,
+      type: "section",
+      status: "pending"
+    }));
+    items.push({
+      name: page.title,
+      type: "page",
+      status: "pending",
+      children: children.length > 0 ? children : void 0
+    });
+  }
+  const cmsPages = siteAnalysis.pages.filter((p) => p.isCmsTemplate);
+  for (const page of cmsPages) {
+    items.push({
+      name: page.title + " (CMS Template)",
+      type: "page",
+      status: "pending"
+    });
+  }
+  return {
+    version: "1.0",
+    generatedAt: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+    items
+  };
+}
+async function saveMigrationPlan(shell, projectPath, plan) {
+  const planDir = `${projectPath}/.shipstudio`;
+  const planPath = `${planDir}/migration-plan.json`;
+  const json = JSON.stringify(plan, null, 2);
+  const encoded = btoa(unescape(encodeURIComponent(json)));
+  const result = await shell.exec("bash", [
+    "-c",
+    `mkdir -p '${planDir}' && echo '${encoded}' | base64 -d > '${planPath}'`
+  ]);
+  if (result.exit_code !== 0) {
+    throw new Error(`Failed to save migration plan: ${result.stderr}`);
+  }
+}
+async function loadMigrationPlan(shell, projectPath) {
+  const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
+  const result = await shell.exec("bash", ["-c", `cat '${planPath}' | base64`]);
+  if (result.exit_code !== 0) return null;
+  try {
+    const json = decodeURIComponent(escape(atob(result.stdout.trim())));
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+function computeProgress(plan) {
+  let complete = 0;
+  let total = 0;
+  for (const item of plan.items) {
+    const leaves = item.children && item.children.length > 0 ? item.children : [item];
+    for (const leaf of leaves) {
+      total++;
+      if (leaf.status === "complete") complete++;
+    }
+  }
+  return { complete, total };
+}
+function computePageProgress(item) {
+  if (!item.children || item.children.length === 0) {
+    return { complete: item.status === "complete" ? 1 : 0, total: 1 };
+  }
+  let complete = 0;
+  for (const child of item.children) {
+    if (child.status === "complete") complete++;
+  }
+  return { complete, total: item.children.length };
+}
+function buildResumePrompt(projectPath) {
+  const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
+  const briefPath = `${projectPath}/.shipstudio/assets/brief.md`;
+  return `Read the migration plan at ${planPath} and the brief at ${briefPath}. Continue the migration from where you left off — update each item's status in the plan file as you complete it.`;
+}
+const STATUS_SYMBOL = {
+  pending: "○",
+  // ○
+  "in-progress": "◆",
+  // ◆
+  complete: "✓"
+  // ✓
+};
+const STATUS_COLOR = {
+  pending: "var(--text-muted)",
+  "in-progress": "var(--accent, #0d99ff)",
+  complete: "#4caf50"
+};
+function ChildItem({ child }) {
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "6px",
+        padding: "2px 0 2px 18px",
+        fontSize: "11px"
+      },
+      children: [
+        /* @__PURE__ */ jsx(
+          "span",
+          {
+            style: {
+              color: STATUS_COLOR[child.status],
+              fontSize: "11px",
+              minWidth: "14px",
+              flexShrink: 0
+            },
+            children: STATUS_SYMBOL[child.status]
+          }
+        ),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("span", { style: { color: "var(--text-primary)" }, children: child.name }),
+          child.notes ? /* @__PURE__ */ jsx("div", { style: { color: "var(--text-muted)", fontSize: "10px", marginTop: "1px" }, children: child.notes }) : null
+        ] })
+      ]
+    }
+  );
+}
+function PlanRow({ item, isExpanded, onToggle }) {
+  const hasChildren = item.children && item.children.length > 0;
+  const progress = hasChildren ? computePageProgress(item) : null;
+  return /* @__PURE__ */ jsxs("div", { children: [
+    /* @__PURE__ */ jsxs(
+      "div",
+      {
+        onClick: hasChildren ? onToggle : void 0,
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          padding: "4px 0",
+          cursor: hasChildren ? "pointer" : "default",
+          fontSize: "12px"
+        },
+        children: [
+          hasChildren ? /* @__PURE__ */ jsx("span", { style: { color: "var(--text-muted)", fontSize: "10px", minWidth: "12px" }, children: isExpanded ? "▼" : "▶" }) : /* @__PURE__ */ jsx("span", { style: { color: STATUS_COLOR[item.status], fontSize: "11px", minWidth: "12px" }, children: STATUS_SYMBOL[item.status] }),
+          /* @__PURE__ */ jsx("span", { style: { color: "var(--text-primary)", flex: 1 }, children: item.name }),
+          progress ? /* @__PURE__ */ jsxs("span", { style: { color: "var(--text-muted)", fontSize: "11px" }, children: [
+            progress.complete,
+            "/",
+            progress.total
+          ] }) : null
+        ]
+      }
+    ),
+    isExpanded && item.children ? item.children.map((child, ci) => /* @__PURE__ */ jsx(ChildItem, { child }, ci)) : null
+  ] });
+}
+function MigrationProgress({ shell, projectPath }) {
+  const [plan, setPlan] = useState(null);
+  const [pollError, setPollError] = useState(false);
+  const [expanded, setExpanded] = useState(/* @__PURE__ */ new Set());
+  const [resumeCopied, setResumeCopied] = useState(false);
+  const hadPlan = useRef(false);
+  useEffect(() => {
+    async function poll() {
+      const result = await loadMigrationPlan(shell, projectPath);
+      if (result !== null) {
+        setPlan(result);
+        hadPlan.current = true;
+        setPollError(false);
+      } else if (hadPlan.current) {
+        setPollError(true);
+      }
+    }
+    poll();
+    const id = setInterval(poll, 3e4);
+    return () => clearInterval(id);
+  }, [shell, projectPath]);
+  const handleContinueMigration = useCallback(async () => {
+    const promptText = buildResumePrompt(projectPath);
+    await copyToClipboard(shell, promptText);
+    setResumeCopied(true);
+    setTimeout(() => setResumeCopied(false), 2e3);
+  }, [shell, projectPath]);
+  const toggleExpanded = useCallback((idx) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  }, []);
+  const sectionLabel = /* @__PURE__ */ jsx(
+    "div",
+    {
+      style: {
+        fontSize: "11px",
+        fontWeight: 500,
+        color: "var(--text-muted)",
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+        marginBottom: "8px",
+        marginTop: "16px"
+      },
+      children: "Migration Progress"
+    }
+  );
+  if (pollError && plan === null) {
+    return /* @__PURE__ */ jsxs("div", { children: [
+      sectionLabel,
+      /* @__PURE__ */ jsx("div", { style: { fontSize: "12px", color: "var(--text-muted)", padding: "8px 0" }, children: "Could not read migration plan" })
+    ] });
+  }
+  if (plan === null) {
+    return null;
+  }
+  const { complete, total } = computeProgress(plan);
+  const pct = total > 0 ? Math.round(complete / total * 100) : 0;
+  const sharedItems = plan.items.map((item, idx) => ({ item, idx })).filter(({ item }) => item.type === "shared");
+  const pageItems = plan.items.map((item, idx) => ({ item, idx })).filter(({ item }) => item.type !== "shared");
+  const orderedItems = [...sharedItems, ...pageItems];
+  return /* @__PURE__ */ jsxs("div", { children: [
+    sectionLabel,
+    /* @__PURE__ */ jsxs("div", { style: { fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px" }, children: [
+      complete,
+      "/",
+      total,
+      " items (",
+      pct,
+      "%)"
+    ] }),
+    /* @__PURE__ */ jsx(
+      "div",
+      {
+        style: {
+          height: "6px",
+          borderRadius: "3px",
+          background: "var(--bg-secondary)",
+          overflow: "hidden",
+          marginBottom: "12px"
+        },
+        children: /* @__PURE__ */ jsx(
+          "div",
+          {
+            style: {
+              height: "100%",
+              width: `${pct}%`,
+              background: "#4caf50",
+              borderRadius: "3px",
+              transition: "width 0.3s ease"
+            }
+          }
+        )
+      }
+    ),
+    /* @__PURE__ */ jsx("div", { children: orderedItems.map(({ item, idx }) => /* @__PURE__ */ jsx(
+      PlanRow,
+      {
+        item,
+        isExpanded: expanded.has(idx),
+        onToggle: () => toggleExpanded(idx)
+      },
+      idx
+    )) }),
+    /* @__PURE__ */ jsx(
+      "button",
+      {
+        className: "wf2c-btn-ghost",
+        onClick: handleContinueMigration,
+        style: { marginTop: "12px" },
+        children: resumeCopied ? "Copied!" : "Continue Migration"
+      }
+    )
+  ] });
 }
 function PreserveCheckbox({ label, checked, onToggle }) {
   return /* @__PURE__ */ jsxs(
@@ -1290,7 +1562,7 @@ function PreserveCheckbox({ label, checked, onToggle }) {
   );
 }
 function MainView() {
-  var _a, _b, _c, _d, _e;
+  var _a, _b, _c, _d, _e, _f;
   const [mode, setMode] = useState("pixel-perfect");
   const [preserve, setPreserve] = useState(new Set(DEFAULT_PRESERVE));
   const [customNotes, setCustomNotes] = useState("");
@@ -1380,6 +1652,8 @@ function MainView() {
         customNotes: mode === "best-site" ? customNotes : void 0
       });
       await saveBrief(shell, projectPath, briefResult.markdown);
+      const migrationPlan = generateMigrationPlan(siteAnalysis);
+      await saveMigrationPlan(shell, projectPath, migrationPlan);
     } catch (err) {
       setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "Brief generation failed" });
       return;
@@ -1470,49 +1744,59 @@ function MainView() {
         ")"
       ] }),
       step.kind === "generating" && /* @__PURE__ */ jsx("div", { className: "wf2c-progress", children: "Generating brief..." }),
-      step.kind === "done" && step.briefResult && /* @__PURE__ */ jsxs("div", { className: "wf2c-results", children: [
-        /* @__PURE__ */ jsxs("div", { className: "wf2c-results-header", children: [
-          /* @__PURE__ */ jsxs("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0 }, children: [
-            /* @__PURE__ */ jsx("circle", { cx: "8", cy: "8", r: "8", fill: "#4caf50" }),
-            /* @__PURE__ */ jsx("path", { d: "M4.5 8.5L7 11L11.5 5.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
+      step.kind === "done" && step.briefResult && /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsxs("div", { className: "wf2c-results", children: [
+          /* @__PURE__ */ jsxs("div", { className: "wf2c-results-header", children: [
+            /* @__PURE__ */ jsxs("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0 }, children: [
+              /* @__PURE__ */ jsx("circle", { cx: "8", cy: "8", r: "8", fill: "#4caf50" }),
+              /* @__PURE__ */ jsx("path", { d: "M4.5 8.5L7 11L11.5 5.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
+            ] }),
+            "Brief ready"
           ] }),
-          "Brief ready"
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "wf2c-results-stats", children: [
-          (_b = step.siteAnalysis) == null ? void 0 : _b.contentPageCount,
-          " pages ·",
-          " ",
-          (((_c = step.assetManifest) == null ? void 0 : _c.images.length) ?? 0) + (((_d = step.assetManifest) == null ? void 0 : _d.videos.length) ?? 0) + (((_e = step.assetManifest) == null ? void 0 : _e.fonts.length) ?? 0),
-          " assets ·",
-          " ",
-          "~",
-          Math.round(step.briefResult.estimatedTokens / 1e3),
-          "K tokens"
-        ] }),
-        isMultiSession && /* @__PURE__ */ jsxs("div", { className: "wf2c-results-tip", children: [
-          "This site has ",
-          pageCount,
-          " pages — it will take multiple prompts to build. The brief includes a Session Tracker so the AI knows where it left off. Just tell it to continue."
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "wf2c-results-output", children: [
-          /* @__PURE__ */ jsx("span", { className: "wf2c-results-output-label", children: "Output" }),
-          /* @__PURE__ */ jsx("div", { className: "wf2c-results-path", children: ".shipstudio/assets/brief.md" })
+          /* @__PURE__ */ jsxs("div", { className: "wf2c-results-stats", children: [
+            (_b = step.siteAnalysis) == null ? void 0 : _b.contentPageCount,
+            " pages ·",
+            " ",
+            (((_c = step.assetManifest) == null ? void 0 : _c.images.length) ?? 0) + (((_d = step.assetManifest) == null ? void 0 : _d.videos.length) ?? 0) + (((_e = step.assetManifest) == null ? void 0 : _e.fonts.length) ?? 0),
+            " assets ·",
+            " ",
+            "~",
+            Math.round(step.briefResult.estimatedTokens / 1e3),
+            "K tokens"
+          ] }),
+          isMultiSession && /* @__PURE__ */ jsxs("div", { className: "wf2c-results-tip", children: [
+            "This site has ",
+            pageCount,
+            " pages — it will take multiple prompts to build. A migration plan file tracks progress across sessions. The brief tells the AI how to use it."
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "wf2c-results-output", children: [
+            /* @__PURE__ */ jsx("span", { className: "wf2c-results-output-label", children: "Output" }),
+            /* @__PURE__ */ jsx("div", { className: "wf2c-results-path", children: ".shipstudio/assets/brief.md" }),
+            /* @__PURE__ */ jsx("div", { className: "wf2c-results-path", children: ".shipstudio/migration-plan.json" })
+          ] }),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "btn-primary",
+              onClick: handleCopyBrief,
+              style: { width: "100%" },
+              children: copied ? "Copied!" : "Copy Brief to Clipboard"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              className: "wf2c-btn-ghost",
+              onClick: handleRetry,
+              children: "Start Over"
+            }
+          )
         ] }),
         /* @__PURE__ */ jsx(
-          "button",
+          MigrationProgress,
           {
-            className: "btn-primary",
-            onClick: handleCopyBrief,
-            style: { width: "100%" },
-            children: copied ? "Copied!" : "Copy Brief to Clipboard"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            className: "wf2c-btn-ghost",
-            onClick: handleRetry,
-            children: "Start Over"
+            shell: shellRef.current,
+            projectPath: ((_f = ctx == null ? void 0 : ctx.project) == null ? void 0 : _f.path) ?? ""
           }
         )
       ] }),
