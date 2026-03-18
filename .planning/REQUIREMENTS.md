@@ -72,17 +72,17 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAN-01 | TBD | Pending |
-| PLAN-02 | TBD | Pending |
-| PLAN-03 | TBD | Pending |
-| PLAN-04 | TBD | Pending |
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| PROG-03 | TBD | Pending |
-| PROG-04 | TBD | Pending |
-| HAND-01 | TBD | Pending |
-| HAND-02 | TBD | Pending |
-| HAND-03 | TBD | Pending |
+| PLAN-01 | Phase 6 | Pending |
+| PLAN-02 | Phase 6 | Pending |
+| PLAN-03 | Phase 6 | Pending |
+| PLAN-04 | Phase 6 | Pending |
+| PROG-01 | Phase 7 | Pending |
+| PROG-02 | Phase 7 | Pending |
+| PROG-03 | Phase 7 | Pending |
+| PROG-04 | Phase 7 | Pending |
+| HAND-01 | Phase 8 | Pending |
+| HAND-02 | Phase 8 | Pending |
+| HAND-03 | Phase 8 | Pending |
 | UX-01 | Pre-milestone | Complete |
 | UX-02 | Pre-milestone | Complete |
 | UX-03 | Pre-milestone | Complete |
@@ -90,9 +90,9 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 **Coverage:**
 - v1.1 requirements: 14 total
 - Already complete: 3 (UX polish, shipped pre-milestone)
-- To be mapped: 11
+- Mapped to phases: 11/11
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-18 after v1.1 milestone requirements*
+*Last updated: 2026-03-18 after v1.1 roadmap creation*

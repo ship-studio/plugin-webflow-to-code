@@ -1,24 +1,14 @@
 # Roadmap: Webflow to Code
 
-## Overview
+## Milestones
 
-Five phases that build the pipeline from the outside in: establish a working plugin shell, then layer in zip extraction, asset copying, HTML analysis, and finally brief generation — the product's core deliverable. Each phase leaves a fully functional artifact. By Phase 5 the user can select a Webflow export, pick a mode, run extraction, and receive a comprehensive agent-ready brief.
+- ✅ **v1.0 MVP** - Phases 1-5 (shipped 2026-03-16)
+- 🚧 **v1.1 Migration Tracker** - Phases 6-8 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Plugin Scaffolding** - Working plugin shell that loads in Ship Studio with a modal and correct build setup
-- [x] **Phase 2: Zip Input and Extraction** - User can select a Webflow zip, extract it, and see step-by-step progress with error handling (completed 2026-03-16)
-- [x] **Phase 3: Asset Pipeline** - All media assets copied to `.shipstudio/assets/` with a typed manifest including responsive variant grouping (completed 2026-03-16)
-- [x] **Phase 4: Site Analysis** - Full HTML parsing — page discovery, structural breakdowns, Webflow component detection, shared layout identification (completed 2026-03-16)
-- [x] **Phase 5: Brief Generation and Full UI** - Mode-aware `brief.md` written to disk with complete modal UI, mode selector, results panel, and token estimate (completed 2026-03-16)
-
-## Phase Details
+<details>
+<summary>✅ v1.0 MVP (Phases 1-5) - SHIPPED 2026-03-16</summary>
 
 ### Phase 1: Plugin Scaffolding
 **Goal**: The plugin loads correctly in Ship Studio, appears in the toolbar, opens a modal, and the build/commit cycle is confirmed working
@@ -30,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `dist/index.js` is built via Vite and committed to git; Ship Studio can load the plugin from a git clone with no build step
   4. Plugin file structure matches plugin-starter conventions (plugin.json, vite.config.ts, tsconfig.json, src/index.tsx)
 **Plans:** 1/1 plans complete
+
 Plans:
 - [x] 01-01-PLAN.md — Scaffold plugin config, source files, build output, and modal shell with mode selector preview
 
@@ -44,6 +35,7 @@ Plans:
   4. User sees named progress labels during processing ("Extracting zip...", "Copying assets...", "Analyzing pages...", "Generating brief...")
   5. Extracted file count is verified against the `unzip -l` manifest (silent extraction failure is caught)
 **Plans:** 2/2 plans complete
+
 Plans:
 - [x] 02-01-PLAN.md — Zip extraction core: types, file picker, extraction with count verification, Webflow validation, and unit tests
 - [x] 02-02-PLAN.md — Wire MainView UI with extraction pipeline, progress labels, inline errors, and retry
@@ -57,9 +49,10 @@ Plans:
   2. The asset manifest lists every copied asset with its path, inferred purpose, and referencing page(s)
   3. Responsive image variants (e.g., `-p-500`, `-p-800`) are grouped under a single base-name entry in the manifest — a 50-image site shows 50 entries, not 300+
 **Plans:** 2/2 plans complete
+
 Plans:
-- [ ] 03-01-PLAN.md — Asset types and manifest builder with responsive variant grouping, video grouping, purpose inference (TDD)
-- [ ] 03-02-PLAN.md — Copy orchestration, ZipStep extension, MainView integration with progress labels
+- [x] 03-01-PLAN.md — Asset types and manifest builder with responsive variant grouping, video grouping, purpose inference (TDD)
+- [x] 03-02-PLAN.md — Copy orchestration, ZipStep extension, MainView integration with progress labels
 
 ### Phase 4: Site Analysis
 **Goal**: Every HTML page in the export is analyzed — page list, routes, structural breakdowns per page, Webflow component recognition, shared layout detection, and CMS template flagging
@@ -72,10 +65,11 @@ Plans:
   4. Pages sharing the same nav/footer pattern are flagged as "build once as shared component"
   5. CMS template pages (`detail_*.html` or containing `{{wf ...}}` placeholders) are identified and labeled — not treated as real content pages
 **Plans:** 3/3 plans complete
+
 Plans:
-- [ ] 04-01-PLAN.md — Types, page parsing (title, route, sections, CMS detection), and Webflow component registry with tests (TDD)
-- [ ] 04-02-PLAN.md — Shared layout detection (data-w-id + class fallback) and buildSiteAnalysis orchestrator (TDD)
-- [ ] 04-03-PLAN.md — ZipStep 'analyzing' variant and MainView integration with progress and results display
+- [x] 04-01-PLAN.md — Types, page parsing (title, route, sections, CMS detection), and Webflow component registry with tests (TDD)
+- [x] 04-02-PLAN.md — Shared layout detection (data-w-id + class fallback) and buildSiteAnalysis orchestrator (TDD)
+- [x] 04-03-PLAN.md — ZipStep 'analyzing' variant and MainView integration with progress and results display
 
 ### Phase 5: Brief Generation and Full UI
 **Goal**: A complete, mode-aware `brief.md` is generated and written to `.shipstudio/assets/`, and the full plugin UI — mode selector, pipeline orchestration, results panel — is wired together end to end
@@ -83,24 +77,78 @@ Plans:
 **Requirements**: BREF-01, BREF-02, BREF-03, BREF-04
 **Success Criteria** (what must be TRUE):
   1. User selects "Pixel Perfect" or "Best Site" mode via radio cards before extraction begins; mode cannot be changed mid-pipeline
-  2. The generated brief contains mode-specific behavioral instructions throughout — not just a header label (Pixel Perfect: preserve class names, fixed units; Best Site: semantic HTML, responsive patterns)
+  2. The generated brief contains mode-specific behavioral instructions throughout — not just a header label
   3. Brief includes a two-tier multi-session scaffold: a Planning Document (comprehensive site overview) and a Session Tracker (agent-maintained checklist with resume instructions)
   4. `brief.md` is written to `.shipstudio/assets/` and the results UI shows the file path and approximate token count
   5. Brief is written as agent-agnostic markdown and documents all assets, CSS file references, page breakdowns, and Webflow component migration notes in a single coherent document
 **Plans:** 2/2 plans complete
+
 Plans:
-- [ ] 05-01-PLAN.md — Brief types, generateBrief pure function (TDD), and I/O helpers (saveBrief, copyToClipboard)
-- [ ] 05-02-PLAN.md — ZipStep extension, MainView pipeline integration, results panel with token count and copy button
+- [x] 05-01-PLAN.md — Brief types, generateBrief pure function (TDD), and I/O helpers (saveBrief, copyToClipboard)
+- [x] 05-02-PLAN.md — ZipStep extension, MainView pipeline integration, results panel with token count and copy button
+
+</details>
+
+### 🚧 v1.1 Migration Tracker (In Progress)
+
+**Milestone Goal:** Evolve the plugin from a brief generator into an end-to-end migration helper — agents create a structured plan file, the plugin reads it live, and users can pause and resume across sessions with one click.
+
+#### Phase 6: Migration Plan Schema and Brief Integration
+**Goal**: Users who follow the brief get an agent that creates a structured `migration-plan.json` as its first action — because the brief explicitly instructs it to, and the schema is simple enough that any coding agent produces it correctly
+**Depends on**: Phase 5
+**Requirements**: PLAN-01, PLAN-02, PLAN-03, PLAN-04
+**Success Criteria** (what must be TRUE):
+  1. The generated `brief.md` contains explicit instructions for the agent to create `.shipstudio/migration-plan.json` before writing any code
+  2. The schema includes all pages with nested sections/components, each carrying a status field (`pending`, `in-progress`, `complete`)
+  3. Shared components (nav, footer) appear as top-level items in the plan schema, not nested under a page
+  4. The brief instructs the agent to update each item's status as it completes it — so the file reflects live progress
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: Design migration-plan.json schema (TypeScript types, validation, example fixture) with unit tests
+- [ ] 06-02: Update brief generation to inject migration plan instructions and schema reference
+
+#### Phase 7: Progress Tracking UI
+**Goal**: Users can see exactly where their migration stands — per-page, per-section — without leaving the plugin, and the view refreshes automatically as the agent works
+**Depends on**: Phase 6
+**Requirements**: PROG-01, PROG-02, PROG-03, PROG-04
+**Success Criteria** (what must be TRUE):
+  1. Plugin shows a list of all pages with each page's name, section count, and a completion fraction (e.g., "3/7 sections")
+  2. Clicking a page expands it to show individual sections/components with a checkmark (complete) or pending indicator
+  3. An overall progress bar and percentage reflects completion across all items in the plan
+  4. The progress view refreshes automatically every 30 seconds by re-reading `.shipstudio/migration-plan.json` via `shell.exec`
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: MigrationPlanReader service (poll + parse plan file via shell.exec) with unit tests
+- [ ] 07-02: ProgressView component (page list, expandable sections, overall progress bar) wired to plan reader
+
+#### Phase 8: Session Handoff
+**Goal**: Users can stop an agent session and resume it later in one click — the plugin tells them when it is waiting for the plan to appear, detects when it does, and provides a ready-to-paste resume prompt
+**Depends on**: Phase 7
+**Requirements**: HAND-01, HAND-02, HAND-03
+**Success Criteria** (what must be TRUE):
+  1. After the brief is copied, the plugin shows a "Waiting for plan" state that tells the user the agent must create the plan file before progress tracking begins
+  2. The plugin automatically transitions to the progress view the first time `.shipstudio/migration-plan.json` appears (no manual refresh required)
+  3. A "Continue Migration" button is visible in the progress view and copies a resume prompt that tells the agent to read the plan file and brief, then continue from where it left off
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: Waiting state UI and auto-transition logic (poll for plan file existence, switch view on detection)
+- [ ] 08-02: Continue Migration button — resume prompt generation and clipboard copy with confirmation
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Plugin Scaffolding | 1/1 | Complete    | 2026-03-16 |
-| 2. Zip Input and Extraction | 2/2 | Complete    | 2026-03-16 |
-| 3. Asset Pipeline | 2/2 | Complete    | 2026-03-16 |
-| 4. Site Analysis | 3/3 | Complete    | 2026-03-16 |
-| 5. Brief Generation and Full UI | 2/2 | Complete    | 2026-03-16 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Plugin Scaffolding | v1.0 | 1/1 | Complete | 2026-03-16 |
+| 2. Zip Input and Extraction | v1.0 | 2/2 | Complete | 2026-03-16 |
+| 3. Asset Pipeline | v1.0 | 2/2 | Complete | 2026-03-16 |
+| 4. Site Analysis | v1.0 | 3/3 | Complete | 2026-03-16 |
+| 5. Brief Generation and Full UI | v1.0 | 2/2 | Complete | 2026-03-16 |
+| 6. Migration Plan Schema and Brief Integration | v1.1 | 0/2 | Not started | - |
+| 7. Progress Tracking UI | v1.1 | 0/2 | Not started | - |
+| 8. Session Handoff | v1.1 | 0/2 | Not started | - |
