@@ -117,11 +117,11 @@ Plans:
   2. Clicking a page expands it to show individual sections/components with a checkmark (complete) or pending indicator
   3. An overall progress bar and percentage reflects completion across all items in the plan
   4. The progress view refreshes automatically every 30 seconds by re-reading `.shipstudio/migration-plan.json` via `shell.exec`
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 07-01: MigrationPlanReader service (poll + parse plan file via shell.exec) with unit tests
-- [ ] 07-02: ProgressView component (page list, expandable sections, overall progress bar) wired to plan reader
+- [ ] 07-01-PLAN.md — loadMigrationPlan reader and computeProgress helpers with TDD tests
+- [ ] 07-02-PLAN.md — MigrationProgress component with polling, expand/collapse, progress bar, wired into MainView
 
 #### Phase 8: Session Handoff
 **Goal**: Users can stop an agent session and resume it later in one click — the plugin tells them when it is waiting for the plan to appear, detects when it does, and provides a ready-to-paste resume prompt
