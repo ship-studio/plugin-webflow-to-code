@@ -1561,7 +1561,7 @@ function PreserveCheckbox({ label, checked, onToggle }) {
   );
 }
 function MainView() {
-  var _a, _b, _c, _d, _e, _f, _g;
+  var _a, _b, _c, _d, _e, _f, _g, _h;
   const [mode, setMode] = useState("pixel-perfect");
   const [preserve, setPreserve] = useState(new Set(DEFAULT_PRESERVE));
   const [customNotes, setCustomNotes] = useState("");
@@ -1571,15 +1571,14 @@ function MainView() {
   const [step, setStep] = useState({ kind: "idle" });
   const [copied, setCopied] = useState(false);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
+  const projectPath = ((_a = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a.path) ?? "";
+  const shell = (ctx == null ? void 0 : ctx.shell) ?? null;
   useEffect(() => {
-    var _a2;
-    const shell = shellRef.current;
-    const projectPath = (_a2 = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a2.path;
     if (!shell || !projectPath) return;
     loadMigrationPlan(shell, projectPath).then((plan) => {
       if (plan !== null) setHasExistingPlan(true);
     });
-  }, [ctx]);
+  }, [shell, projectPath]);
   const togglePreserve = useCallback((key) => {
     setPreserve((prev) => {
       const next = new Set(prev);
@@ -1593,13 +1592,13 @@ function MainView() {
   }, []);
   const handleSelectZip = useCallback(async () => {
     var _a2;
-    const shell = shellRef.current;
-    const projectPath = (_a2 = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a2.path;
-    if (!shell || !projectPath) return;
+    const shell2 = shellRef.current;
+    const projectPath2 = (_a2 = ctx == null ? void 0 : ctx.project) == null ? void 0 : _a2.path;
+    if (!shell2 || !projectPath2) return;
     setStep({ kind: "picking" });
     let zipPath;
     try {
-      zipPath = await pickZipFile(shell);
+      zipPath = await pickZipFile(shell2);
     } catch (err) {
       setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "File picker failed" });
       return;
@@ -1608,10 +1607,10 @@ function MainView() {
       setStep({ kind: "idle" });
       return;
     }
-    const extractDir = buildExtractDir(projectPath, zipPath);
+    const extractDir = buildExtractDir(projectPath2, zipPath);
     let manifest;
     try {
-      manifest = await extractAndVerify(shell, zipPath, extractDir, (label) => {
+      manifest = await extractAndVerify(shell2, zipPath, extractDir, (label) => {
         const countMatch = label.match(/\((\d+) files\)/);
         const fileCount = countMatch ? parseInt(countMatch[1], 10) : 0;
         setStep({ kind: "extracting", fileCount });
@@ -1622,7 +1621,7 @@ function MainView() {
     }
     setStep({ kind: "validating" });
     try {
-      await validateWebflowExport(shell, extractDir, manifest.entries);
+      await validateWebflowExport(shell2, extractDir, manifest.entries);
     } catch (err) {
       setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "Validation failed" });
       return;
@@ -1630,7 +1629,7 @@ function MainView() {
     setStep({ kind: "copying", label: "Copying assets..." });
     let assetManifest;
     try {
-      assetManifest = await copyAssets(shell, extractDir, projectPath, manifest.entries, (label) => {
+      assetManifest = await copyAssets(shell2, extractDir, projectPath2, manifest.entries, (label) => {
         setStep({ kind: "copying", label });
       });
     } catch (err) {
@@ -1640,7 +1639,7 @@ function MainView() {
     setStep({ kind: "analyzing", pageCount: 0 });
     let siteAnalysis;
     try {
-      siteAnalysis = await buildSiteAnalysis(shell, manifest.entries, extractDir, (label) => {
+      siteAnalysis = await buildSiteAnalysis(shell2, manifest.entries, extractDir, (label) => {
         const countMatch = label.match(/(\d+)\/(\d+)/);
         const current = countMatch ? parseInt(countMatch[1], 10) : 0;
         setStep({ kind: "analyzing", pageCount: current });
@@ -1656,13 +1655,13 @@ function MainView() {
         mode,
         siteAnalysis,
         assetManifest,
-        projectPath,
+        projectPath: projectPath2,
         preserve: mode === "best-site" ? preserve : void 0,
         customNotes: mode === "best-site" ? customNotes : void 0
       });
-      await saveBrief(shell, projectPath, briefResult.markdown);
+      await saveBrief(shell2, projectPath2, briefResult.markdown);
       const migrationPlan = generateMigrationPlan(siteAnalysis);
-      await saveMigrationPlan(shell, projectPath, migrationPlan);
+      await saveMigrationPlan(shell2, projectPath2, migrationPlan);
     } catch (err) {
       setStep({ kind: "error", message: (err == null ? void 0 : err.message) || "Brief generation failed" });
       return;
@@ -1674,17 +1673,17 @@ function MainView() {
     setCopied(false);
   }, []);
   const handleCopyBrief = useCallback(async () => {
-    const shell = shellRef.current;
-    if (!shell || step.kind !== "done" || !step.briefResult) return;
+    const shell2 = shellRef.current;
+    if (!shell2 || step.kind !== "done" || !step.briefResult) return;
     try {
-      await copyToClipboard(shell, step.briefResult.markdown);
+      await copyToClipboard(shell2, step.briefResult.markdown);
       setCopied(true);
       setTimeout(() => setCopied(false), 2e3);
     } catch {
     }
   }, [step]);
   const showModeSelector = step.kind === "idle" && !hasExistingPlan || step.kind === "picking" || step.kind === "error";
-  const pageCount = step.kind === "done" ? ((_a = step.siteAnalysis) == null ? void 0 : _a.contentPageCount) ?? 0 : 0;
+  const pageCount = step.kind === "done" ? ((_b = step.siteAnalysis) == null ? void 0 : _b.contentPageCount) ?? 0 : 0;
   const isMultiSession = pageCount > 3;
   return /* @__PURE__ */ jsxs("div", { children: [
     showModeSelector && /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -1744,7 +1743,7 @@ function MainView() {
           MigrationProgress,
           {
             shell: shellRef.current,
-            projectPath: ((_b = ctx == null ? void 0 : ctx.project) == null ? void 0 : _b.path) ?? ""
+            projectPath: ((_c = ctx == null ? void 0 : ctx.project) == null ? void 0 : _c.path) ?? ""
           }
         ),
         /* @__PURE__ */ jsx(
@@ -1783,10 +1782,10 @@ function MainView() {
             "Brief ready"
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "wf2c-results-stats", children: [
-            (_c = step.siteAnalysis) == null ? void 0 : _c.contentPageCount,
+            (_d = step.siteAnalysis) == null ? void 0 : _d.contentPageCount,
             " pages ·",
             " ",
-            (((_d = step.assetManifest) == null ? void 0 : _d.images.length) ?? 0) + (((_e = step.assetManifest) == null ? void 0 : _e.videos.length) ?? 0) + (((_f = step.assetManifest) == null ? void 0 : _f.fonts.length) ?? 0),
+            (((_e = step.assetManifest) == null ? void 0 : _e.images.length) ?? 0) + (((_f = step.assetManifest) == null ? void 0 : _f.videos.length) ?? 0) + (((_g = step.assetManifest) == null ? void 0 : _g.fonts.length) ?? 0),
             " assets ·",
             " ",
             "~",
@@ -1825,7 +1824,7 @@ function MainView() {
           MigrationProgress,
           {
             shell: shellRef.current,
-            projectPath: ((_g = ctx == null ? void 0 : ctx.project) == null ? void 0 : _g.path) ?? ""
+            projectPath: ((_h = ctx == null ? void 0 : ctx.project) == null ? void 0 : _h.path) ?? ""
           }
         )
       ] }),

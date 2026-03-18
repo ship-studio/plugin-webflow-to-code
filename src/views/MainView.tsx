@@ -69,14 +69,14 @@ export function MainView() {
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
 
   // On mount, check if a migration plan already exists from a previous session
+  const projectPath = ctx?.project?.path ?? '';
+  const shell = ctx?.shell ?? null;
   useEffect(() => {
-    const shell = shellRef.current;
-    const projectPath = ctx?.project?.path;
     if (!shell || !projectPath) return;
     loadMigrationPlan(shell, projectPath).then((plan) => {
       if (plan !== null) setHasExistingPlan(true);
     });
-  }, [ctx]);
+  }, [shell, projectPath]);
 
   const togglePreserve = useCallback((key: PreserveOption) => {
     setPreserve((prev) => {
