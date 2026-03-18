@@ -198,41 +198,51 @@ describe('generateBrief', () => {
     });
   });
 
-  describe('Session Tracker', () => {
-    it('contains Session Tracker section', () => {
+  describe('Migration Plan', () => {
+    it('contains Migration Plan section heading', () => {
       const result = generateBrief(makeMockInput());
-      expect(result.markdown).toContain('## Session Tracker');
+      expect(result.markdown).toContain('## Migration Plan');
     });
 
-    it('has one checkbox per non-CMS content page', () => {
+    it('references .shipstudio/migration-plan.json file path', () => {
       const result = generateBrief(makeMockInput());
-      const trackerSection = result.markdown.split('## Session Tracker')[1]!;
-      // 3 content pages: /, /about, /contact
-      const checkboxes = trackerSection.match(/- \[ \] `/g);
-      // Plus possible shared nav/footer checkboxes, CMS checkboxes
-      // Content pages specifically
-      expect(trackerSection).toContain('`/` ');
-      expect(trackerSection).toContain('`/about` ');
-      expect(trackerSection).toContain('`/contact` ');
+      expect(result.markdown).toContain('.shipstudio/migration-plan.json');
     });
 
-    it('has shared nav and footer checkboxes when shared layout detected', () => {
+    it('instructs agent NOT to recreate the plan file', () => {
       const result = generateBrief(makeMockInput());
-      const trackerSection = result.markdown.split('## Session Tracker')[1]!;
-      expect(trackerSection).toContain('Shared Nav component');
-      expect(trackerSection).toContain('Shared Footer component');
+      expect(result.markdown).toContain('Do NOT recreate this file');
     });
 
-    it('lists CMS template pages separately under CMS Templates heading', () => {
+    it('instructs agent to update status as items complete', () => {
       const result = generateBrief(makeMockInput());
-      const trackerSection = result.markdown.split('## Session Tracker')[1]!;
-      expect(trackerSection).toContain('CMS Templates');
-      expect(trackerSection).toContain('Blog Post');
+      expect(result.markdown).toContain('"pending"');
+      expect(result.markdown).toContain('"in-progress"');
+      expect(result.markdown).toContain('"complete"');
     });
 
-    it('contains MIGRATION_LOG.md resume instructions', () => {
+    it('contains JSON example with plan schema format', () => {
       const result = generateBrief(makeMockInput());
-      expect(result.markdown).toContain('MIGRATION_LOG.md');
+      expect(result.markdown).toContain('"version": "1.0"');
+      expect(result.markdown).toContain('"type": "shared"');
+      expect(result.markdown).toContain('"children"');
+    });
+
+    it('does NOT contain Session Tracker section (regression guard)', () => {
+      const result = generateBrief(makeMockInput());
+      expect(result.markdown).not.toContain('## Session Tracker');
+    });
+
+    it('does NOT contain MIGRATION_LOG.md reference (regression guard)', () => {
+      const result = generateBrief(makeMockInput());
+      expect(result.markdown).not.toContain('MIGRATION_LOG.md');
+    });
+
+    it('Migration Plan section appears before How to Use This Brief', () => {
+      const result = generateBrief(makeMockInput());
+      const planIndex = result.markdown.indexOf('## Migration Plan');
+      const instructionsIndex = result.markdown.indexOf('## How to Use This Brief');
+      expect(planIndex).toBeLessThan(instructionsIndex);
     });
   });
 

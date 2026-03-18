@@ -158,7 +158,7 @@ ${buildModernizeGuidance(p)}`;
 
 **Goal:** Rebuild the site using modern, semantic, maintainable code while preserving specific design elements from the original.
 
-**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time using the Session Tracker. Pay close attention to which aspects should be preserved vs. modernized.
+**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time, updating migration-plan.json as you go. Pay close attention to which aspects should be preserved vs. modernized.
 ${preserveSection}${modernizeSection}
 
 **During building:**
@@ -374,75 +374,55 @@ function buildAssetsSection(assetManifest: AssetManifest, mode: BriefMode): stri
   return lines.join('\n');
 }
 
-function buildSessionTrackerSection(
-  pages: PageInfo[],
-  sharedLayout: SharedLayout,
-): string {
-  const contentPages = pages.filter((p) => !p.isCmsTemplate && !p.isUtilityPage);
-  const cmsPages = pages.filter((p) => p.isCmsTemplate);
+function buildMigrationPlanSection(): string {
+  return `## Migration Plan
 
-  const lines: string[] = [
-    '## Session Tracker',
-    '',
-    'This section tracks migration progress across sessions. Update checkboxes as you complete each page.',
-    '',
-    '**Instructions for the agent:**',
-    '1. At the start of each session, read this section to find the next unchecked page.',
-    '2. Complete that page\'s migration before moving to the next.',
-    '3. Check the box when the page is fully migrated and visually verified.',
-    '4. Before ending a session, update this tracker and commit `MIGRATION_LOG.md` with notes on what was completed and any decisions made.',
-    '',
-    '**Build order (shared components first, then pages):**',
-    '',
-  ];
+The file \`.shipstudio/migration-plan.json\` has been created for you. It contains all pages and sections from the site analysis with status \`"pending"\`.
 
-  if (sharedLayout.hasSharedNav) {
-    lines.push('- [ ] Shared Nav component (see Shared Layout section)');
-  }
-  if (sharedLayout.hasSharedFooter) {
-    lines.push('- [ ] Shared Footer component (see Shared Layout section)');
-  }
+**Before writing any code:**
+1. Read \`.shipstudio/migration-plan.json\` to understand the full scope of work.
+2. Do NOT recreate this file — it already exists. Do not overwrite it with a new structure.
 
-  for (const page of contentPages) {
-    lines.push(`- [ ] \`${page.route}\` -- ${escapeTableCell(page.title)} (\`${page.filename}\`)`);
-  }
+**As you build:**
+- Update each item's \`status\` from \`"pending"\` to \`"in-progress"\` when you start it.
+- Update to \`"complete"\` when you finish and verify it.
+- Use the optional \`notes\` field to record decisions: \`"responsive done, animations pending"\`.
+- You may add new items (e.g., framework setup tasks) but keep the base structure intact.
 
-  if (cmsPages.length > 0) {
-    lines.push('');
-    lines.push('**CMS Templates (after static pages):**');
-    lines.push('');
-    for (const page of cmsPages) {
-      lines.push(
-        `- [ ] \`${page.route}\` -- ${escapeTableCell(page.title)} (\`${page.filename}\`) *(CMS Template -- requires content strategy)*`,
-      );
+**Example of the file format:**
+\`\`\`json
+{
+  "version": "1.0",
+  "generatedAt": "2026-03-18",
+  "items": [
+    { "name": "Shared Nav", "type": "shared", "status": "pending" },
+    { "name": "Shared Footer", "type": "shared", "status": "pending" },
+    {
+      "name": "Home",
+      "type": "page",
+      "status": "in-progress",
+      "notes": "Hero section done, working on features",
+      "children": [
+        { "name": "Hero", "type": "section", "status": "complete" },
+        { "name": "Features", "type": "section", "status": "in-progress" },
+        { "name": "Call to Action", "type": "section", "status": "pending" }
+      ]
     }
-  }
-
-  lines.push('');
-  lines.push('**MIGRATION_LOG.md format:**');
-  lines.push('');
-  lines.push('Create `MIGRATION_LOG.md` in the project root. After each session, append:');
-  lines.push('');
-  lines.push('```');
-  lines.push('## Session {date}');
-  lines.push('**Completed:** {page routes finished this session}');
-  lines.push('**Decisions:** {any implementation choices made}');
-  lines.push('**Next:** {which page to start on next session}');
-  lines.push('```');
-
-  return lines.join('\n');
+  ]
+}
+\`\`\``;
 }
 
 export function generateBrief(input: BriefInput): BriefResult {
   const sections = [
     buildMetadataSection(input),
+    buildMigrationPlanSection(),
     buildInstructionsSection(input.mode, input.preserve, input.customNotes),
     buildOverviewSection(input.siteAnalysis),
     buildSharedLayoutSection(input.siteAnalysis.sharedLayout, input.siteAnalysis.pages),
     buildCSSReferenceSection(input.assetManifest.cssFiles, input.mode),
     buildPagesSection(input.siteAnalysis.pages, input.mode),
     buildAssetsSection(input.assetManifest, input.mode),
-    buildSessionTrackerSection(input.siteAnalysis.pages, input.siteAnalysis.sharedLayout),
   ].filter(Boolean);
 
   const markdown = sections.join('\n\n');
