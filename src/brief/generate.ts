@@ -1,7 +1,8 @@
-import type { BriefInput, BriefResult, BriefStats } from './types';
+import type { BriefInput, BriefResult, BriefStats, PreserveOption } from './types';
 import type { PageInfo, SharedLayout } from '../analysis/types';
 import type { AssetManifest, ImageEntry, VideoEntry, FontEntry } from '../assets/types';
 import type { BriefMode } from './types';
+import { PRESERVE_OPTIONS } from './types';
 
 export const TOKEN_WARNING_THRESHOLD = 12_000;
 
@@ -50,7 +51,64 @@ function buildMetadataSection(input: BriefInput): string {
   return lines.join('\n');
 }
 
-function buildInstructionsSection(mode: BriefMode): string {
+function buildPreserveModernizeLists(preserve: Set<PreserveOption>): { preserveList: string[]; modernizeList: string[] } {
+  const preserveList: string[] = [];
+  const modernizeList: string[] = [];
+  for (const opt of PRESERVE_OPTIONS) {
+    if (preserve.has(opt.key)) {
+      preserveList.push(opt.label);
+    } else {
+      modernizeList.push(opt.label);
+    }
+  }
+  return { preserveList, modernizeList };
+}
+
+function buildPreserveGuidance(preserve: Set<PreserveOption>): string {
+  const lines: string[] = [];
+
+  if (preserve.has('brand-colors')) {
+    lines.push('- **Brand colors & typography:** Extract exact hex values, font families, sizes, and weights from the CSS files. Use these values verbatim in your implementation -- do not approximate or substitute.');
+  }
+  if (preserve.has('visual-hierarchy')) {
+    lines.push('- **Visual hierarchy & spacing:** Maintain the original section ordering, relative element sizing, and whitespace rhythm. Spacing values (margins, padding, gaps) should match the CSS reference.');
+  }
+  if (preserve.has('exact-layouts')) {
+    lines.push('- **Exact layouts:** Preserve the original CSS grid/flexbox structure. Replicate column counts, row patterns, and alignment. Use the same layout approach (grid vs flex) as the original.');
+  }
+  if (preserve.has('animations')) {
+    lines.push('- **Animations & interactions:** Recreate hover states, transitions, scroll-triggered effects, and any IX2 interactions from the original. Match timing, easing, and trigger behavior.');
+  }
+  if (preserve.has('image-treatment')) {
+    lines.push('- **Image treatment & sizing:** Keep original image aspect ratios, cropping, and responsive behavior. Use srcset with the provided variants where available.');
+  }
+
+  return lines.join('\n');
+}
+
+function buildModernizeGuidance(preserve: Set<PreserveOption>): string {
+  const lines: string[] = [];
+
+  if (!preserve.has('brand-colors')) {
+    lines.push('- **Colors & typography:** Reference the CSS files for the general palette, but feel free to refine or systematize values (e.g., create design tokens or a Tailwind theme).');
+  }
+  if (!preserve.has('visual-hierarchy')) {
+    lines.push('- **Visual hierarchy & spacing:** Use the original as a reference but improve spacing with a consistent scale (e.g., 4px/8px grid or rem-based spacing).');
+  }
+  if (!preserve.has('exact-layouts')) {
+    lines.push('- **Layouts:** Reimagine using modern CSS grid and flexbox with relative units (rem, %, clamp). Prioritize responsiveness over exact replication.');
+  }
+  if (!preserve.has('animations')) {
+    lines.push('- **Animations & interactions:** Implement tasteful, performant alternatives using CSS transitions and IntersectionObserver. Simplify where the original was overly complex.');
+  }
+  if (!preserve.has('image-treatment')) {
+    lines.push('- **Images:** Use the largest available variant as src. Implement your own responsive image strategy optimized for your stack.');
+  }
+
+  return lines.join('\n');
+}
+
+function buildInstructionsSection(mode: BriefMode, preserve?: Set<PreserveOption>, customNotes?: string): string {
   if (mode === 'pixel-perfect') {
     return `## How to Use This Brief
 
@@ -68,21 +126,49 @@ function buildInstructionsSection(mode: BriefMode): string {
 **After building:** Compare your output against the original Webflow export visually. Spacing, color, and typography should match the CSS file values.`;
   }
 
+  // Best Site mode — build preserve/modernize split
+  const p = preserve ?? new Set();
+  const { preserveList, modernizeList } = buildPreserveModernizeLists(p);
+
+  let preserveSection = '';
+  if (preserveList.length > 0) {
+    preserveSection = `
+
+**Preserve from the original** (${preserveList.join(', ')}):
+${buildPreserveGuidance(p)}`;
+  }
+
+  let modernizeSection = '';
+  if (modernizeList.length > 0) {
+    modernizeSection = `
+
+**Modernize** (${modernizeList.join(', ')}):
+${buildModernizeGuidance(p)}`;
+  }
+
+  let customSection = '';
+  if (customNotes && customNotes.trim()) {
+    customSection = `
+
+**Additional instructions from the user:**
+> ${customNotes.trim().replace(/\n/g, '\n> ')}`;
+  }
+
   return `## How to Use This Brief
 
-**Goal:** Rebuild the site using modern, semantic, maintainable code. Capture the visual design and content while improving the code quality.
+**Goal:** Rebuild the site using modern, semantic, maintainable code while preserving specific design elements from the original.
 
-**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time using the Session Tracker.
+**Before building:** Read the Site Overview and Shared Layout sections first. Then work through pages one at a time using the Session Tracker. Pay close attention to which aspects should be preserved vs. modernized.
+${preserveSection}${modernizeSection}
 
 **During building:**
 - Use semantic HTML5 elements: \`<nav>\`, \`<main>\`, \`<section>\`, \`<article>\`, \`<footer>\`.
 - Replace Webflow utility classes with your project's preferred approach (Tailwind, CSS Modules, or plain CSS).
-- Use CSS grid and flexbox with relative units (rem, %, clamp) for responsive layouts.
 - Implement Webflow components as native equivalents: \`.w-nav\` -> \`<nav>\` with CSS + JS hamburger; \`.w-slider\` -> CSS scroll snap or a lightweight library; \`.w-tabs\` -> \`<details>\`/\`<summary>\` or custom JS tabs.
 - Do NOT use webflow.js -- it is Webflow's proprietary runtime and will not work outside Webflow hosting.
-- Reference the CSS files for color values and typography, but adapt the rules to your implementation approach.
-
-**After building:** Verify the visual hierarchy, color palette, and content structure match the original design intent.`;
+- Reference the CSS files for design values. For preserved aspects, match them exactly. For modernized aspects, adapt to your implementation approach.
+${customSection}
+**After building:** Verify preserved aspects match the original exactly. For modernized aspects, verify the overall design intent is maintained while code quality is improved.`;
 }
 
 function buildOverviewSection(siteAnalysis: {
@@ -350,7 +436,7 @@ function buildSessionTrackerSection(
 export function generateBrief(input: BriefInput): BriefResult {
   const sections = [
     buildMetadataSection(input),
-    buildInstructionsSection(input.mode),
+    buildInstructionsSection(input.mode, input.preserve, input.customNotes),
     buildOverviewSection(input.siteAnalysis),
     buildSharedLayoutSection(input.siteAnalysis.sharedLayout, input.siteAnalysis.pages),
     buildCSSReferenceSection(input.assetManifest.cssFiles, input.mode),

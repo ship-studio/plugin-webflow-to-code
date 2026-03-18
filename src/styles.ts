@@ -138,15 +138,18 @@ export const PLUGIN_CSS = `
 .wf2c-results {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 0;
+  gap: 12px;
+  padding: 4px 0 0;
 }
 
 .wf2c-results-header {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .wf2c-results-stats {
@@ -155,14 +158,114 @@ export const PLUGIN_CSS = `
   text-align: center;
 }
 
+.wf2c-results-output {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wf2c-results-output-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .wf2c-results-path {
   font-size: 11px;
   font-family: monospace;
   color: var(--text-muted);
-  text-align: center;
   padding: 6px 8px;
   background: var(--bg-secondary);
   border-radius: 4px;
+}
+
+.wf2c-btn-ghost {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  width: 100%;
+  transition: color 0.15s ease;
+}
+
+.wf2c-btn-ghost:hover {
+  color: var(--text-secondary);
+}
+
+.wf2c-preserve-section {
+  margin-top: 12px;
+}
+
+.wf2c-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wf2c-check-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+  padding: 3px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wf2c-checkbox {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wf2c-checkbox.checked {
+  background: var(--accent, #0d99ff);
+  border-color: var(--accent, #0d99ff);
+}
+
+.wf2c-custom-notes {
+  width: 100%;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  resize: vertical;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.wf2c-custom-notes::placeholder {
+  color: var(--text-muted);
+}
+
+.wf2c-custom-notes:focus {
+  outline: none;
+  border-color: var(--accent, #0d99ff);
+}
+
+.wf2c-results-tip {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 2px solid var(--accent, #0d99ff);
+  padding: 6px 8px;
+  line-height: 1.4;
+  border-radius: 0 4px 4px 0;
 }
 
 `;

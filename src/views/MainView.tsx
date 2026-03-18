@@ -6,19 +6,74 @@ import { copyAssets } from '../assets/copy';
 import { buildSiteAnalysis } from '../analysis/analyze';
 import { generateBrief } from '../brief/generate';
 import { saveBrief, copyToClipboard } from '../brief/io';
-import type { BriefResult } from '../brief/types';
+import type { BriefResult, PreserveOption } from '../brief/types';
+import { PRESERVE_OPTIONS, DEFAULT_PRESERVE } from '../brief/types';
 import type { ZipStep } from '../zip/types';
 
 type Mode = 'pixel-perfect' | 'best-site';
 
+function PreserveCheckbox({ label, checked, onToggle }: { label: string; checked: boolean; onToggle: () => void }) {
+  return (
+    <div
+      onClick={onToggle}
+      style={{
+        display: 'flex',
+        flexDirection: 'row' as const,
+        alignItems: 'center',
+        gap: '8px',
+        padding: '4px 0',
+        cursor: 'pointer',
+        fontSize: '11px',
+        color: 'var(--text-primary)',
+      }}
+    >
+      <div
+        style={{
+          width: '14px',
+          height: '14px',
+          minWidth: '14px',
+          borderRadius: '3px',
+          border: checked ? 'none' : '1.5px solid var(--text-muted)',
+          background: checked ? '#0d99ff' : 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {checked && (
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M2 5.5L4 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+      <span>{label}</span>
+    </div>
+  );
+}
+
 export function MainView() {
   const [mode, setMode] = useState<Mode>('pixel-perfect');
+  const [preserve, setPreserve] = useState<Set<PreserveOption>>(new Set(DEFAULT_PRESERVE));
+  const [customNotes, setCustomNotes] = useState('');
   const ctx = usePluginContext();
   const shellRef = useRef(ctx?.shell ?? null);
   shellRef.current = ctx?.shell ?? null;
 
   const [step, setStep] = useState<ZipStep>({ kind: 'idle' });
   const [copied, setCopied] = useState(false);
+
+  const togglePreserve = useCallback((key: PreserveOption) => {
+    setPreserve((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
 
   const handleSelectZip = useCallback(async () => {
     const shell = shellRef.current;
@@ -92,7 +147,14 @@ export function MainView() {
     setStep({ kind: 'generating' });
     let briefResult: BriefResult;
     try {
-      briefResult = generateBrief({ mode, siteAnalysis, assetManifest, projectPath });
+      briefResult = generateBrief({
+        mode,
+        siteAnalysis,
+        assetManifest,
+        projectPath,
+        preserve: mode === 'best-site' ? preserve : undefined,
+        customNotes: mode === 'best-site' ? customNotes : undefined,
+      });
       await saveBrief(shell, projectPath, briefResult.markdown);
     } catch (err: any) {
       setStep({ kind: 'error', message: err?.message || 'Brief generation failed' });
@@ -101,7 +163,7 @@ export function MainView() {
 
     // Step 7: Done with all results
     setStep({ kind: 'done', zipPath, extractDir, fileCount: manifest.fileCount, assetManifest, siteAnalysis, briefResult });
-  }, [ctx, mode]);
+  }, [ctx, mode, preserve, customNotes]);
 
   const handleRetry = useCallback(() => {
     setStep({ kind: 'idle' });
@@ -121,6 +183,8 @@ export function MainView() {
   }, [step]);
 
   const showModeSelector = step.kind === 'idle' || step.kind === 'picking' || step.kind === 'error';
+  const pageCount = step.kind === 'done' ? (step.siteAnalysis?.contentPageCount ?? 0) : 0;
+  const isMultiSession = pageCount > 3;
 
   return (
     <div>
@@ -143,10 +207,34 @@ export function MainView() {
             >
               <div className="wf2c-mode-card-name">Best Site</div>
               <div className="wf2c-mode-card-desc">
-                Semantic HTML, responsive patterns, modern conventions
+                Modern code — you choose what to keep from the original
               </div>
             </div>
           </div>
+
+          {mode === 'best-site' && (
+            <div className="wf2c-preserve-section">
+              <span className="wf2c-label" style={{ marginBottom: '4px' }}>Preserve from original</span>
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '2px' }}>
+                {PRESERVE_OPTIONS.map((opt) => (
+                  <PreserveCheckbox
+                    key={opt.key}
+                    label={opt.label}
+                    checked={preserve.has(opt.key)}
+                    onToggle={() => togglePreserve(opt.key)}
+                  />
+                ))}
+              </div>
+              <span className="wf2c-label" style={{ marginTop: '8px', marginBottom: '4px' }}>Additional instructions (optional)</span>
+              <textarea
+                className="wf2c-custom-notes"
+                placeholder='e.g. "Keep the gradient hero but make the nav sticky"'
+                value={customNotes}
+                onChange={(e) => setCustomNotes(e.target.value)}
+                rows={2}
+              />
+            </div>
+          )}
         </>
       )}
 
@@ -187,7 +275,27 @@ export function MainView() {
 
         {step.kind === 'done' && step.briefResult && (
           <div className="wf2c-results">
-            <div className="wf2c-results-header">Brief ready</div>
+            <div className="wf2c-results-header">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                <circle cx="8" cy="8" r="8" fill="#4caf50" />
+                <path d="M4.5 8.5L7 11L11.5 5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Brief ready
+            </div>
+            <div className="wf2c-results-stats">
+              {step.siteAnalysis?.contentPageCount} pages &middot;{' '}
+              {(step.assetManifest?.images.length ?? 0) + (step.assetManifest?.videos.length ?? 0) + (step.assetManifest?.fonts.length ?? 0)} assets &middot;{' '}
+              ~{Math.round(step.briefResult.estimatedTokens / 1000)}K tokens
+            </div>
+            {isMultiSession && (
+              <div className="wf2c-results-tip">
+                This site has {pageCount} pages — it will take multiple prompts to build. The brief includes a Session Tracker so the AI knows where it left off. Just tell it to continue.
+              </div>
+            )}
+            <div className="wf2c-results-output">
+              <span className="wf2c-results-output-label">Output</span>
+              <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
+            </div>
             <button
               className="btn-primary"
               onClick={handleCopyBrief}
@@ -195,16 +303,9 @@ export function MainView() {
             >
               {copied ? 'Copied!' : 'Copy Brief to Clipboard'}
             </button>
-            <div className="wf2c-results-stats">
-              {step.siteAnalysis?.contentPageCount} pages &middot;{' '}
-              {(step.assetManifest?.images.length ?? 0) + (step.assetManifest?.videos.length ?? 0) + (step.assetManifest?.fonts.length ?? 0)} assets &middot;{' '}
-              ~{Math.round(step.briefResult.estimatedTokens / 1000)}K tokens
-            </div>
-            <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
             <button
-              className="btn-primary"
+              className="wf2c-btn-ghost"
               onClick={handleRetry}
-              style={{ width: '100%', marginTop: '8px', opacity: 0.7 }}
             >
               Start Over
             </button>
