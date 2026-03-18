@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Ship Studio plugin that takes a Webflow site export (.zip) and generates a comprehensive migration brief for coding agents (Claude Code, Codex, etc.). The plugin extracts assets, analyzes page structure, detects Webflow components, identifies shared layouts, flags CMS templates, and produces a mode-aware `brief.md` that guides the agent to recreate the site in any framework. Shipped as v1.0 with 3,755 lines of TypeScript, 145 tests, and a 48KB bundle.
+A Ship Studio plugin that takes a Webflow site export (.zip) and helps users migrate it to real code using any coding agent. The plugin extracts assets, analyzes page structure, generates a migration brief, and then tracks the agent's progress as it builds the site — showing live per-page, per-section status in the plugin UI. Users can pause and resume across multiple agent sessions.
 
 ## Core Value
 
@@ -27,7 +27,14 @@ Users get the "aha moment" — after running the plugin and letting their coding
 
 ### Active
 
-(None — all v1.0 requirements validated)
+- [ ] Brief instructs agent to create a structured migration plan as first step
+- [ ] Migration plan stored as `.shipstudio/migration-plan.json` with defined schema
+- [ ] Plugin UI shows live migration progress (expandable per-page, per-section)
+- [ ] Plugin polls plan file every 30s to detect updates
+- [ ] "Waiting for plan" state shown after brief is copied, before plan file exists
+- [ ] "Continue Migration" button copies a prompt for resuming in a new agent session
+- [ ] Best Site mode includes preserve options checklist and custom instructions
+- [ ] Results panel redesign (success state, multi-session tip for large sites)
 
 ### Out of Scope
 
@@ -37,8 +44,10 @@ Users get the "aha moment" — after running the plugin and letting their coding
 - Page filtering/selection UI — all pages always included
 - Agent-specific tailoring — brief stays universal
 - Video transcoding or image optimization — assets copied as-is
-- Inspiration mode (third mode) — deferred to v1.1
+- Inspiration mode (third mode) — deferred to future
 - Webflow CMS data export via API — requires OAuth, deferred to v2.0
+- Agent orchestration — plugin observes, doesn't drive the coding agent
+- Framework-specific plan steps — plan is framework-agnostic like the brief
 
 ## Context
 
@@ -73,5 +82,16 @@ DOMParser (browser API) for HTML analysis.
 | base64 encoding for brief file write | Avoids shell metacharacter issues in markdown content | ✓ Good |
 | btn-primary host class (not custom) | Custom CSS caused white-on-white text; host class has correct theme colors | ✓ Good — learned from Phase 1 bug |
 
+## Current Milestone: v1.1 Migration Tracker
+
+**Goal:** Evolve the plugin from a brief generator into an end-to-end migration helper with live progress tracking.
+
+**Target features:**
+- Migration plan JSON schema and brief instructions for agents to create it
+- Live progress UI (expandable per-page, per-section view)
+- Continue Migration prompt for multi-session handoff
+- Best Site preserve options (already shipped pre-milestone)
+- Results panel UX improvements (already shipped pre-milestone)
+
 ---
-*Last updated: 2026-03-16 after v1.0 milestone*
+*Last updated: 2026-03-18 after v1.1 milestone start*
