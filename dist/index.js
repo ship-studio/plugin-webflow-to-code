@@ -1448,7 +1448,7 @@ function MigrationProgress({ shell, projectPath }) {
         textTransform: "uppercase",
         letterSpacing: "0.5px",
         marginBottom: "8px",
-        marginTop: "16px"
+        marginTop: "0px"
       },
       children: "Migration Progress"
     }

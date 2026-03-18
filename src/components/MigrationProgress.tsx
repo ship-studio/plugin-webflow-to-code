@@ -150,7 +150,7 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
         textTransform: 'uppercase' as const,
         letterSpacing: '0.5px',
         marginBottom: '8px',
-        marginTop: '16px',
+        marginTop: '0px',
       }}
     >
       Migration Progress
