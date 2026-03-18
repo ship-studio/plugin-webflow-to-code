@@ -14,7 +14,7 @@ export const PLUGIN_CSS = `
 
 .wf2c-modal {
   width: 480px;
-  max-height: 80vh;
+  max-height: 60vh;
   border-radius: 12px;
   overflow: hidden;
   display: flex;

@@ -269,9 +269,8 @@ export function MainView() {
               projectPath={ctx?.project?.path ?? ''}
             />
             <button
-              className="btn-primary"
+              className="wf2c-btn-ghost"
               onClick={() => { setHasExistingPlan(false); }}
-              style={{ width: '100%', marginTop: '12px' }}
             >
               New Migration
             </button>

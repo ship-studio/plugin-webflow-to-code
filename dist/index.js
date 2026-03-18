@@ -15,7 +15,7 @@ const PLUGIN_CSS = `
 
 .wf2c-modal {
   width: 480px;
-  max-height: 80vh;
+  max-height: 60vh;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -1749,11 +1749,10 @@ function MainView() {
         /* @__PURE__ */ jsx(
           "button",
           {
-            className: "btn-primary",
+            className: "wf2c-btn-ghost",
             onClick: () => {
               setHasExistingPlan(false);
             },
-            style: { width: "100%", marginTop: "12px" },
             children: "New Migration"
           }
         )
