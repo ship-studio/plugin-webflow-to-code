@@ -105,8 +105,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — Migration plan types, skeleton generator, and I/O with TDD (src/plan/ module)
-- [ ] 06-02-PLAN.md — Replace Session Tracker with plan preamble in brief, wire MainView pipeline
+- [x] 06-01-PLAN.md — Migration plan types, skeleton generator, and I/O with TDD (src/plan/ module)
+- [x] 06-02-PLAN.md — Replace Session Tracker with plan preamble in brief, wire MainView pipeline
 
 #### Phase 7: Progress Tracking UI
 **Goal**: Users can see exactly where their migration stands — per-page, per-section — without leaving the plugin, and the view refreshes automatically as the agent works
@@ -120,8 +120,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 07-01-PLAN.md — loadMigrationPlan reader and computeProgress helpers with TDD tests
-- [ ] 07-02-PLAN.md — MigrationProgress component with polling, expand/collapse, progress bar, wired into MainView
+- [x] 07-01-PLAN.md — loadMigrationPlan reader and computeProgress helpers with TDD tests
+- [x] 07-02-PLAN.md — MigrationProgress component with polling, expand/collapse, progress bar, wired into MainView
 
 #### Phase 8: Session Handoff
 **Goal**: Users can stop an agent session and resume it later in one click — the plugin tells them when it is waiting for the plan to appear, detects when it does, and provides a ready-to-paste resume prompt
