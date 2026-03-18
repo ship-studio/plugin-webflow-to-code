@@ -1162,9 +1162,10 @@ The file \`.shipstudio/migration-plan.json\` has been created for you. It contai
 1. Read \`.shipstudio/migration-plan.json\` to understand the full scope of work.
 2. Do NOT recreate this file — it already exists. Do not overwrite it with a new structure.
 
-**As you build:**
-- Update each item's \`status\` from \`"pending"\` to \`"in-progress"\` when you start it.
-- Update to \`"complete"\` when you finish and verify it.
+**IMPORTANT — Update the plan file after EACH item you complete:**
+- When you start an item: set its \`status\` to \`"in-progress"\` and write the file.
+- When you finish an item: set its \`status\` to \`"complete"\` and write the file immediately — do not batch updates.
+- The user is watching progress in real time. If you complete 3 sections but only update the file at the end, they see no progress for the entire duration. Update after every single item.
 - Use the optional \`notes\` field to record decisions: \`"responsive done, animations pending"\`.
 - You may add new items (e.g., framework setup tasks) but keep the base structure intact.
 
