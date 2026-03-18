@@ -34,9 +34,9 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 
 ### Session Handoff
 
-- [ ] **HAND-01**: "Continue Migration" button copies a prompt that tells the agent to read plan file + brief and resume
-- [ ] **HAND-02**: "Waiting for plan" state shown after brief is copied, before plan file exists
-- [ ] **HAND-03**: Plugin auto-transitions from waiting → progress view when plan file appears
+- [x] **HAND-01**: "Continue Migration" button copies a prompt that tells the agent to read plan file + brief and resume
+- [x] **HAND-02**: "Waiting for plan" state shown after brief is copied, before plan file exists
+- [x] **HAND-03**: Plugin auto-transitions from waiting → progress view when plan file appears
 
 ### UX Polish (already shipped pre-milestone)
 
@@ -80,9 +80,9 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 | PROG-02 | Phase 7 | Complete |
 | PROG-03 | Phase 7 | Complete |
 | PROG-04 | Phase 7 | Complete |
-| HAND-01 | Phase 8 | Pending |
-| HAND-02 | Phase 8 | Pending |
-| HAND-03 | Phase 8 | Pending |
+| HAND-01 | Phase 8 | Complete |
+| HAND-02 | Phase 8 | Complete |
+| HAND-03 | Phase 8 | Complete |
 | UX-01 | Pre-milestone | Complete |
 | UX-02 | Pre-milestone | Complete |
 | UX-03 | Pre-milestone | Complete |

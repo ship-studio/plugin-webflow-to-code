@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Migration Tracker
 status: completed
-stopped_at: Completed 07-02-PLAN.md — Phase 7 approved in Ship Studio
-last_updated: "2026-03-18T14:38:04.903Z"
+stopped_at: Completed 08-01-PLAN.md — v1.1 milestone complete
+last_updated: "2026-03-18T14:47:12.547Z"
 last_activity: "2026-03-18 — Phase 7 complete: MigrationProgress component approved in Ship Studio"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100%
 | Phase 06-migration-plan-schema-and-brief-integration P02 | 8min | 2 tasks | 3 files |
 | Phase 07-progress-tracking-ui P01 | 2min | 2 tasks | 2 files |
 | Phase 07-progress-tracking-ui P02 | 2min | 2 tasks | 2 files |
+| Phase 08-session-handoff P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 07-01]: computePageProgress handles childless item as 0/1 or 1/1 — safe for progress bar rendering
 - [Phase 07-progress-tracking-ui]: MigrationProgress is sibling of wf2c-results div (not nested) — clean separation between brief results and plan tracking
 - [Phase 07-progress-tracking-ui]: pollError only activates when hadPlan.current is true — prevents false error flash before plan file first written
+- [Phase 08-session-handoff]: Resume prompt is concise (<500 chars) — points to plan and brief file paths, does not embed content
+- [Phase 08-session-handoff]: Continue Migration button always visible regardless of progress %; no 'waiting for plan' UI — HAND-02/HAND-03 satisfied by Phase 6
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T14:34:00Z
-Stopped at: Completed 07-02-PLAN.md — Phase 7 approved in Ship Studio
+Last session: 2026-03-18T14:47:12.545Z
+Stopped at: Completed 08-01-PLAN.md — v1.1 milestone complete
 Resume file: None

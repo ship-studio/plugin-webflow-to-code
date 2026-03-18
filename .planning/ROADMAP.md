@@ -131,7 +131,7 @@ Plans:
   1. After the brief is copied, the plugin shows a "Waiting for plan" state that tells the user the agent must create the plan file before progress tracking begins
   2. The plugin automatically transitions to the progress view the first time `.shipstudio/migration-plan.json` appears (no manual refresh required)
   3. A "Continue Migration" button is visible in the progress view and copies a resume prompt that tells the agent to read the plan file and brief, then continue from where it left off
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 08-01-PLAN.md — Resume prompt generator (TDD) and Continue Migration button in MigrationProgress component
@@ -150,4 +150,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 5. Brief Generation and Full UI | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 6. Migration Plan Schema and Brief Integration | v1.1 | 2/2 | Complete | 2026-03-18 |
 | 7. Progress Tracking UI | v1.1 | 2/2 | Complete | 2026-03-18 |
-| 8. Session Handoff | v1.1 | 0/1 | Not started | - |
+| 8. Session Handoff | 1/1 | Complete   | 2026-03-18 | - |
