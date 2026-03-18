@@ -215,11 +215,11 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
         ))}
       </div>
       <button
-        className="wf2c-btn-ghost"
+        className="btn-primary"
         onClick={handleContinueMigration}
-        style={{ marginTop: '12px' }}
+        style={{ width: '100%', marginTop: '12px' }}
       >
-        {resumeCopied ? 'Copied!' : 'Continue Migration'}
+        {resumeCopied ? 'Prompt copied — paste into your agent' : 'Copy Resume Prompt'}
       </button>
     </div>
   );

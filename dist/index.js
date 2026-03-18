@@ -1321,10 +1321,8 @@ function computePageProgress(item) {
   }
   return { complete, total: item.children.length };
 }
-function buildResumePrompt(projectPath) {
-  const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
-  const briefPath = `${projectPath}/.shipstudio/assets/brief.md`;
-  return `Read the migration plan at ${planPath} and the brief at ${briefPath}. Continue the migration from where you left off — update each item's status in the plan file as you complete it.`;
+function buildResumePrompt(_projectPath) {
+  return `Read the migration plan at .shipstudio/migration-plan.json and the brief at .shipstudio/assets/brief.md. Continue the migration from where you left off. Check which items are still "pending" or "in-progress" in the plan file and pick up from there. Update each item's status in the plan file as you complete it.`;
 }
 const STATUS_SYMBOL = {
   pending: "○",
@@ -1423,7 +1421,7 @@ function MigrationProgress({ shell, projectPath }) {
     return () => clearInterval(id);
   }, [shell, projectPath]);
   const handleContinueMigration = useCallback(async () => {
-    const promptText = buildResumePrompt(projectPath);
+    const promptText = buildResumePrompt();
     await copyToClipboard(shell, promptText);
     setResumeCopied(true);
     setTimeout(() => setResumeCopied(false), 2e3);
@@ -1514,10 +1512,10 @@ function MigrationProgress({ shell, projectPath }) {
     /* @__PURE__ */ jsx(
       "button",
       {
-        className: "wf2c-btn-ghost",
+        className: "btn-primary",
         onClick: handleContinueMigration,
-        style: { marginTop: "12px" },
-        children: resumeCopied ? "Copied!" : "Continue Migration"
+        style: { width: "100%", marginTop: "12px" },
+        children: resumeCopied ? "Prompt copied — paste into your agent" : "Copy Resume Prompt"
       }
     )
   ] });
