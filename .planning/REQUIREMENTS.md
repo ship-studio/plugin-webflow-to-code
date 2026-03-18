@@ -3,100 +3,96 @@
 **Defined:** 2026-03-16
 **Core Value:** Users get the "aha moment" — after running the plugin and letting their coding agent work from the brief, they see something that looks almost exactly like their Webflow site, now living in real code.
 
-## v1 Requirements
+## v1.0 Requirements (Validated)
 
-Requirements for initial release. Each maps to roadmap phases.
+All v1.0 requirements shipped and validated. See MILESTONES.md for details.
 
-### Zip Input & Extraction
+- [x] **ZIP-01** through **ZIP-04**: Zip input, extraction, validation, progress — Phase 1-2
+- [x] **ASST-01** through **ASST-03**: Asset copying, manifest, responsive variants — Phase 3
+- [x] **PAGE-01** through **PAGE-04**: Page discovery, structure, CSS reference, shared layout — Phase 4
+- [x] **WFLW-01** through **WFLW-03**: Component detection, interactions, CMS templates — Phase 4
+- [x] **BREF-01** through **BREF-04**: Mode selection, instructions, multi-session, token count — Phase 5
+- [x] **INFR-01** through **INFR-02**: Ship Studio conventions, plugin-starter structure — Phase 1
 
-- [x] **ZIP-01**: User can select a Webflow export .zip via file picker in the plugin modal
-- [x] **ZIP-02**: Plugin extracts zip contents to a temp directory via shell.exec unzip
-- [x] **ZIP-03**: Plugin validates zip structure (checks for index.html, CSS files) and shows clear error for malformed exports
-- [x] **ZIP-04**: Plugin shows step-by-step progress labels during processing ("Extracting zip...", "Copying assets...", "Analyzing pages...", "Generating brief...")
+## v1.1 Requirements
 
-### Asset Management
+Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 
-- [x] **ASST-01**: Plugin copies all media assets (images, SVGs, fonts, videos) to `.shipstudio/assets/`
-- [x] **ASST-02**: Brief contains an asset manifest table listing every copied asset with path, inferred purpose, and referencing page(s)
-- [x] **ASST-03**: Plugin groups responsive image variants (-p-500, -p-800, etc.) as srcset families in the asset manifest
+### Plan Schema
 
-### Page Analysis
+- [ ] **PLAN-01**: Brief instructs agent to create `.shipstudio/migration-plan.json` as its first action
+- [ ] **PLAN-02**: Plan schema captures pages with sections/components as nested items, each with a status
+- [ ] **PLAN-03**: Plan schema includes shared components (nav, footer) as top-level items
+- [ ] **PLAN-04**: Agent updates plan file status as it completes each item
 
-- [x] **PAGE-01**: Plugin discovers all HTML pages from the export and extracts title, route, and filename
-- [x] **PAGE-02**: Plugin generates a per-page structural breakdown (major sections: nav, hero, features, footer, etc.)
-- [x] **PAGE-03**: Brief references original CSS files by path rather than re-extracting design tokens
-- [x] **PAGE-04**: Plugin detects shared layout patterns (common nav/footer) across pages and flags them as "build once as shared component"
+### Progress UI
 
-### Webflow Intelligence
+- [ ] **PROG-01**: Plugin shows expandable per-page progress (page name, section count, completion fraction)
+- [ ] **PROG-02**: Expanded page shows individual sections/components with checkmark or pending status
+- [ ] **PROG-03**: Overall progress bar/percentage shown across all pages
+- [ ] **PROG-04**: Plugin polls `.shipstudio/migration-plan.json` every 30s to refresh progress
 
-- [x] **WFLW-01**: Plugin recognizes Webflow component classes (.w-nav, .w-dropdown, .w-slider, .w-tabs, .w-form, .w-lightbox, .w-embed) and maps them to semantic descriptions with migration notes
-- [x] **WFLW-02**: Plugin detects JavaScript interactions (data-ix, animations, scroll triggers) and documents them in the brief
-- [x] **WFLW-03**: Plugin identifies CMS template pages (containing placeholders not content) and flags them with an explanation
+### Session Handoff
 
-### Brief Generation
+- [ ] **HAND-01**: "Continue Migration" button copies a prompt that tells the agent to read plan file + brief and resume
+- [ ] **HAND-02**: "Waiting for plan" state shown after brief is copied, before plan file exists
+- [ ] **HAND-03**: Plugin auto-transitions from waiting → progress view when plan file appears
 
-- [x] **BREF-01**: User selects between "Pixel Perfect" and "Best Site" modes before extraction via radio cards in the modal
-- [x] **BREF-02**: Brief contains mode-specific behavioral instructions (Pixel Perfect: exact dimensions, fixed units; Best Site: semantic HTML, responsive patterns)
-- [x] **BREF-03**: Brief includes a multi-session migration scaffold (ordered page list, progress tracking format, resume instructions)
-- [x] **BREF-04**: Plugin shows approximate token count in the results UI after brief generation
+### UX Polish (already shipped pre-milestone)
 
-### Plugin Infrastructure
+- [x] **UX-01**: Best Site mode includes preserve options checklist with custom instructions textarea
+- [x] **UX-02**: Results panel redesigned with success state, output label, ghost Start Over button
+- [x] **UX-03**: Multi-session tip shown for sites with >3 pages
 
-- [x] **INFR-01**: Plugin follows Ship Studio conventions (toolbar slot, externalized React, shell.exec for file ops, committed dist/)
-- [x] **INFR-02**: Plugin uses the plugin-starter template structure (plugin.json, vite.config.ts, tsconfig.json)
+## Future Requirements
 
-## v2 Requirements
+### Inspiration Mode
 
-### Enhanced Analysis
+- **INSP-01**: Third conversion mode for creative reinterpretation of the site
+- **INSP-02**: User provides style/mood direction for the rebuild
 
-- **EANA-01**: Inspiration mode (third mode) — adapt Webflow design patterns to an existing codebase
-- **EANA-02**: Webflow CMS data export via Webflow API (requires OAuth flow)
+### CMS Integration
+
+- **CMS-01**: Export CMS data via Webflow API
+- **CMS-02**: Generate data models from CMS collections
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Actual code conversion (HTML → React/Next.js) | Plugin prepares the brief; the coding agent does the conversion |
-| Framework detection or framework-specific output | Brief is agent-agnostic; agent adapts to the project's framework |
-| Design token re-extraction from CSS | Raw CSS files serve as the canonical reference |
-| Page filtering/selection UI | All pages always included; agent manages migration order via multi-session scaffold |
-| Agent-specific brief variants | Structured markdown works for all capable coding agents |
-| Image optimization / video transcoding | Assets copied as-is; optimization is a post-migration concern |
-| Drag-and-drop zip input | File picker is consistent with Ship Studio conventions |
-| CMS data from Webflow API | Requires auth flow; export zip is the input boundary |
+| Actual code conversion | Plugin prepares the brief; the coding agent does the conversion |
+| Framework detection or framework-specific output | Brief is agent-agnostic |
+| Design token re-extraction from CSS | Raw CSS files serve as reference |
+| Agent orchestration | Plugin observes, doesn't drive the coding agent |
+| Framework-specific plan steps | Plan is framework-agnostic like the brief |
+| Real-time file watching | Shell.exec polling at 30s is simpler and sufficient |
+| Plan editing in plugin UI | User edits through the agent, plugin is read-only |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZIP-01 | Phase 2 | Complete |
-| ZIP-02 | Phase 2 | Complete |
-| ZIP-03 | Phase 2 | Complete |
-| ZIP-04 | Phase 2 | Complete |
-| ASST-01 | Phase 3 | Complete |
-| ASST-02 | Phase 3 | Complete |
-| ASST-03 | Phase 3 | Complete |
-| PAGE-01 | Phase 4 | Complete |
-| PAGE-02 | Phase 4 | Complete |
-| PAGE-03 | Phase 4 | Complete |
-| PAGE-04 | Phase 4 | Complete |
-| WFLW-01 | Phase 4 | Complete |
-| WFLW-02 | Phase 4 | Complete |
-| WFLW-03 | Phase 4 | Complete |
-| BREF-01 | Phase 5 | Complete |
-| BREF-02 | Phase 5 | Complete |
-| BREF-03 | Phase 5 | Complete |
-| BREF-04 | Phase 5 | Complete |
-| INFR-01 | Phase 1 | Complete |
-| INFR-02 | Phase 1 | Complete |
+| PLAN-01 | TBD | Pending |
+| PLAN-02 | TBD | Pending |
+| PLAN-03 | TBD | Pending |
+| PLAN-04 | TBD | Pending |
+| PROG-01 | TBD | Pending |
+| PROG-02 | TBD | Pending |
+| PROG-03 | TBD | Pending |
+| PROG-04 | TBD | Pending |
+| HAND-01 | TBD | Pending |
+| HAND-02 | TBD | Pending |
+| HAND-03 | TBD | Pending |
+| UX-01 | Pre-milestone | Complete |
+| UX-02 | Pre-milestone | Complete |
+| UX-03 | Pre-milestone | Complete |
 
 **Coverage:**
-- v1 requirements: 20 total
-- Mapped to phases: 20
-- Unmapped: 0 ✓
+- v1.1 requirements: 14 total
+- Already complete: 3 (UX polish, shipped pre-milestone)
+- To be mapped: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after roadmap creation — all 20 requirements mapped*
+*Last updated: 2026-03-18 after v1.1 milestone requirements*
