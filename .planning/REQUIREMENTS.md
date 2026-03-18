@@ -21,8 +21,8 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 ### Plan Schema
 
 - [ ] **PLAN-01**: Brief instructs agent to create `.shipstudio/migration-plan.json` as its first action
-- [ ] **PLAN-02**: Plan schema captures pages with sections/components as nested items, each with a status
-- [ ] **PLAN-03**: Plan schema includes shared components (nav, footer) as top-level items
+- [x] **PLAN-02**: Plan schema captures pages with sections/components as nested items, each with a status
+- [x] **PLAN-03**: Plan schema includes shared components (nav, footer) as top-level items
 - [ ] **PLAN-04**: Agent updates plan file status as it completes each item
 
 ### Progress UI
@@ -73,8 +73,8 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PLAN-01 | Phase 6 | Pending |
-| PLAN-02 | Phase 6 | Pending |
-| PLAN-03 | Phase 6 | Pending |
+| PLAN-02 | Phase 6 | Complete |
+| PLAN-03 | Phase 6 | Complete |
 | PLAN-04 | Phase 6 | Pending |
 | PROG-01 | Phase 7 | Pending |
 | PROG-02 | Phase 7 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Migration Tracker
 status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-18T13:01:25.983Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-18T13:23:03.251Z"
 last_activity: 2026-03-18 — Roadmap created for v1.1 (Phases 6-8)
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 06-migration-plan-schema-and-brief-integration P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - Poll every 30s for plan file changes (not filesystem watcher — shell.exec overhead acceptable)
 - Expandable per-page, per-section progress UI (not just page-level)
 - "Continue Migration" copies a prompt pointing to plan file + brief (not full brief in clipboard)
+- [Phase 06-migration-plan-schema-and-brief-integration]: migration-plan.json stored at .shipstudio/migration-plan.json (not under /assets/) — operational state file
+- [Phase 06-migration-plan-schema-and-brief-integration]: saveMigrationPlan includes mkdir -p safety guard; utility pages excluded from plan; CMS templates no children
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:01:25.982Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-migration-plan-schema-and-brief-integration/06-CONTEXT.md
+Last session: 2026-03-18T13:23:03.249Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
