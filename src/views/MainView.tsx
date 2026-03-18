@@ -6,6 +6,8 @@ import { copyAssets } from '../assets/copy';
 import { buildSiteAnalysis } from '../analysis/analyze';
 import { generateBrief } from '../brief/generate';
 import { saveBrief, copyToClipboard } from '../brief/io';
+import { generateMigrationPlan } from '../plan/generate';
+import { saveMigrationPlan } from '../plan/io';
 import type { BriefResult, PreserveOption } from '../brief/types';
 import { PRESERVE_OPTIONS, DEFAULT_PRESERVE } from '../brief/types';
 import type { ZipStep } from '../zip/types';
@@ -156,6 +158,8 @@ export function MainView() {
         customNotes: mode === 'best-site' ? customNotes : undefined,
       });
       await saveBrief(shell, projectPath, briefResult.markdown);
+      const migrationPlan = generateMigrationPlan(siteAnalysis);
+      await saveMigrationPlan(shell, projectPath, migrationPlan);
     } catch (err: any) {
       setStep({ kind: 'error', message: err?.message || 'Brief generation failed' });
       return;
@@ -289,12 +293,13 @@ export function MainView() {
             </div>
             {isMultiSession && (
               <div className="wf2c-results-tip">
-                This site has {pageCount} pages — it will take multiple prompts to build. The brief includes a Session Tracker so the AI knows where it left off. Just tell it to continue.
+                This site has {pageCount} pages — it will take multiple prompts to build. A migration plan file tracks progress across sessions. The brief tells the AI how to use it.
               </div>
             )}
             <div className="wf2c-results-output">
               <span className="wf2c-results-output-label">Output</span>
               <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
+              <div className="wf2c-results-path">.shipstudio/migration-plan.json</div>
             </div>
             <button
               className="btn-primary"
