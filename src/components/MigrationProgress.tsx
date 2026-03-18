@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { MigrationPlan, PlanStatus } from '../plan/types';
+import type { MigrationPlan, PlanItem, PlanStatus } from '../plan/types';
 import {
   loadMigrationPlan,
   computeProgress,
   computePageProgress,
 } from '../plan/read';
+import { buildResumePrompt } from '../plan/resumePrompt';
+import { copyToClipboard } from '../brief/io';
 
 interface MigrationProgressProps {
   shell: { exec(cmd: string, args: string[]): Promise<{ exit_code: number; stdout: string; stderr: string }> };
@@ -23,10 +25,84 @@ const STATUS_COLOR: Record<PlanStatus, string> = {
   complete: '#4caf50',
 };
 
+function ChildItem({ child }: { child: PlanItem }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '6px',
+        padding: '2px 0 2px 18px',
+        fontSize: '11px',
+      }}
+    >
+      <span
+        style={{
+          color: STATUS_COLOR[child.status],
+          fontSize: '11px',
+          minWidth: '14px',
+          flexShrink: 0,
+        }}
+      >
+        {STATUS_SYMBOL[child.status]}
+      </span>
+      <div>
+        <span style={{ color: 'var(--text-primary)' }}>{child.name}</span>
+        {child.notes ? (
+          <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginTop: '1px' }}>
+            {child.notes}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function PlanRow({ item, isExpanded, onToggle }: { item: PlanItem; isExpanded: boolean; onToggle: () => void }) {
+  const hasChildren = item.children && item.children.length > 0;
+  const progress = hasChildren ? computePageProgress(item) : null;
+
+  return (
+    <div>
+      <div
+        onClick={hasChildren ? onToggle : undefined}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '4px 0',
+          cursor: hasChildren ? 'pointer' : 'default',
+          fontSize: '12px',
+        }}
+      >
+        {hasChildren ? (
+          <span style={{ color: 'var(--text-muted)', fontSize: '10px', minWidth: '12px' }}>
+            {isExpanded ? '\u25BC' : '\u25B6'}
+          </span>
+        ) : (
+          <span style={{ color: STATUS_COLOR[item.status], fontSize: '11px', minWidth: '12px' }}>
+            {STATUS_SYMBOL[item.status]}
+          </span>
+        )}
+        <span style={{ color: 'var(--text-primary)', flex: 1 }}>{item.name}</span>
+        {progress ? (
+          <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
+            {progress.complete}/{progress.total}
+          </span>
+        ) : null}
+      </div>
+      {isExpanded && item.children ? item.children.map((child, ci) => (
+        <ChildItem key={ci} child={child} />
+      )) : null}
+    </div>
+  );
+}
+
 export function MigrationProgress({ shell, projectPath }: MigrationProgressProps) {
   const [plan, setPlan] = useState<MigrationPlan | null>(null);
   const [pollError, setPollError] = useState(false);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [resumeCopied, setResumeCopied] = useState(false);
   const hadPlan = useRef(false);
 
   useEffect(() => {
@@ -39,12 +115,18 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
       } else if (hadPlan.current) {
         setPollError(true);
       }
-      // If result is null and hadPlan is false: silent — file not created yet
     }
 
     poll();
     const id = setInterval(poll, 30_000);
     return () => clearInterval(id);
+  }, [shell, projectPath]);
+
+  const handleContinueMigration = useCallback(async () => {
+    const promptText = buildResumePrompt(projectPath);
+    await copyToClipboard(shell, promptText);
+    setResumeCopied(true);
+    setTimeout(() => setResumeCopied(false), 2000);
   }, [shell, projectPath]);
 
   const toggleExpanded = useCallback((idx: number) => {
@@ -59,7 +141,6 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
     });
   }, []);
 
-  // Section label — always rendered if we have a plan or an error state
   const sectionLabel = (
     <div
       style={{
@@ -76,7 +157,6 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
     </div>
   );
 
-  // Error state — file was readable before, now fails
   if (pollError && plan === null) {
     return (
       <div>
@@ -88,7 +168,6 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
     );
   }
 
-  // No plan yet — silent
   if (plan === null) {
     return null;
   }
@@ -96,7 +175,6 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
   const { complete, total } = computeProgress(plan);
   const pct = total > 0 ? Math.round((complete / total) * 100) : 0;
 
-  // Separate shared items and page items — shared items rendered first
   const sharedItems = plan.items.map((item, idx) => ({ item, idx })).filter(({ item }) => item.type === 'shared');
   const pageItems = plan.items.map((item, idx) => ({ item, idx })).filter(({ item }) => item.type !== 'shared');
   const orderedItems = [...sharedItems, ...pageItems];
@@ -104,8 +182,6 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
   return (
     <div>
       {sectionLabel}
-
-      {/* Overall progress bar */}
       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
         {complete}/{total} items ({pct}%)
       </div>
@@ -128,75 +204,23 @@ export function MigrationProgress({ shell, projectPath }: MigrationProgressProps
           }}
         />
       </div>
-
-      {/* Item list */}
       <div>
         {orderedItems.map(({ item, idx }) => (
-          <div key={idx}>
-            {/* Row */}
-            <div
-              onClick={() => { if (item.children?.length) toggleExpanded(idx); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 0',
-                cursor: item.children?.length ? 'pointer' : 'default',
-                fontSize: '12px',
-              }}
-            >
-              {item.children?.length ? (
-                <span style={{ color: 'var(--text-muted)', fontSize: '10px', minWidth: '12px' }}>
-                  {expanded.has(idx) ? '\u25BC' : '\u25B6'}
-                </span>
-              ) : (
-                <span style={{ color: STATUS_COLOR[item.status], fontSize: '11px', minWidth: '12px' }}>
-                  {STATUS_SYMBOL[item.status]}
-                </span>
-              )}
-              <span style={{ color: 'var(--text-primary)', flex: 1 }}>{item.name}</span>
-              {item.children?.length ? (
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
-                  {computePageProgress(item).complete}/{computePageProgress(item).total}
-                </span>
-              ) : null}
-            </div>
-
-            {/* Expanded children */}
-            {expanded.has(idx) && item.children?.map((child, ci) => (
-              <div
-                key={ci}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '6px',
-                  padding: '2px 0 2px 18px',
-                  fontSize: '11px',
-                }}
-              >
-                <span
-                  style={{
-                    color: STATUS_COLOR[child.status],
-                    fontSize: '11px',
-                    minWidth: '14px',
-                    flexShrink: 0,
-                  }}
-                >
-                  {STATUS_SYMBOL[child.status]}
-                </span>
-                <div>
-                  <span style={{ color: 'var(--text-primary)' }}>{child.name}</span>
-                  {child.notes && (
-                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginTop: '1px' }}>
-                      {child.notes}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <PlanRow
+            key={idx}
+            item={item}
+            isExpanded={expanded.has(idx)}
+            onToggle={() => toggleExpanded(idx)}
+          />
         ))}
       </div>
+      <button
+        className="wf2c-btn-ghost"
+        onClick={handleContinueMigration}
+        style={{ marginTop: '12px' }}
+      >
+        {resumeCopied ? 'Copied!' : 'Continue Migration'}
+      </button>
     </div>
   );
 }
