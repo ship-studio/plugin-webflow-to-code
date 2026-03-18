@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, vi } from 'vitest';
-import type { MigrationPlan } from './types';
-import { loadMigrationPlan } from './read';
+import type { MigrationPlan, PlanItem } from './types';
+import { loadMigrationPlan, computeProgress, computePageProgress } from './read';
 
 function encodePlan(plan: unknown): string {
   return btoa(unescape(encodeURIComponent(JSON.stringify(plan))));
@@ -60,5 +60,97 @@ describe('loadMigrationPlan', () => {
       'bash',
       ['-c', "cat '/project/.shipstudio/migration-plan.json' | base64"],
     );
+  });
+});
+
+describe('computeProgress', () => {
+  it('returns zero for empty plan', () => {
+    const plan: MigrationPlan = { version: '1.0', generatedAt: '2026-03-18', items: [] };
+    expect(computeProgress(plan)).toEqual({ complete: 0, total: 0 });
+  });
+
+  it('counts children as leaves, not the page', () => {
+    const plan: MigrationPlan = {
+      version: '1.0',
+      generatedAt: '2026-03-18',
+      items: [
+        {
+          name: 'Home',
+          type: 'page',
+          status: 'pending',
+          children: [
+            { name: 'Hero', type: 'section', status: 'complete' },
+            { name: 'Features', type: 'section', status: 'complete' },
+            { name: 'Footer', type: 'section', status: 'pending' },
+          ],
+        },
+      ],
+    };
+    expect(computeProgress(plan)).toEqual({ complete: 2, total: 3 });
+  });
+
+  it('counts shared items as leaves alongside page children', () => {
+    const plan: MigrationPlan = {
+      version: '1.0',
+      generatedAt: '2026-03-18',
+      items: [
+        { name: 'Nav', type: 'shared', status: 'complete' },
+        { name: 'Footer', type: 'shared', status: 'pending' },
+        {
+          name: 'Home',
+          type: 'page',
+          status: 'pending',
+          children: [
+            { name: 'Hero', type: 'section', status: 'complete' },
+            { name: 'Features', type: 'section', status: 'complete' },
+          ],
+        },
+      ],
+    };
+    expect(computeProgress(plan)).toEqual({ complete: 3, total: 4 });
+  });
+
+  it('counts childless page as a leaf', () => {
+    const plan: MigrationPlan = {
+      version: '1.0',
+      generatedAt: '2026-03-18',
+      items: [{ name: 'About', type: 'page', status: 'complete' }],
+    };
+    expect(computeProgress(plan)).toEqual({ complete: 1, total: 1 });
+  });
+
+  it('handles in-progress status as not complete', () => {
+    const plan: MigrationPlan = {
+      version: '1.0',
+      generatedAt: '2026-03-18',
+      items: [{ name: 'Nav', type: 'shared', status: 'in-progress' }],
+    };
+    expect(computeProgress(plan)).toEqual({ complete: 0, total: 1 });
+  });
+});
+
+describe('computePageProgress', () => {
+  it('returns fraction for page with children', () => {
+    const page: PlanItem = {
+      name: 'Home',
+      type: 'page',
+      status: 'pending',
+      children: [
+        { name: 'Hero', type: 'section', status: 'complete' },
+        { name: 'Features', type: 'section', status: 'complete' },
+        { name: 'Footer', type: 'section', status: 'pending' },
+      ],
+    };
+    expect(computePageProgress(page)).toEqual({ complete: 2, total: 3 });
+  });
+
+  it('returns 0/1 for childless pending page', () => {
+    const page: PlanItem = { name: 'About', type: 'page', status: 'pending' };
+    expect(computePageProgress(page)).toEqual({ complete: 0, total: 1 });
+  });
+
+  it('returns 1/1 for childless complete page', () => {
+    const page: PlanItem = { name: 'About', type: 'page', status: 'complete' };
+    expect(computePageProgress(page)).toEqual({ complete: 1, total: 1 });
   });
 });
