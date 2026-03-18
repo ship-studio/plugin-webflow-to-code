@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Migration Tracker
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-18T13:52:09.575Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-18T14:12:09.160Z"
 last_activity: 2026-03-18 — Roadmap created for v1.1 (Phases 6-8)
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 06-migration-plan-schema-and-brief-integration P01 | 2min | 2 tasks | 5 files |
 | Phase 06-migration-plan-schema-and-brief-integration P02 | 8min | 2 tasks | 3 files |
+| Phase 07-progress-tracking-ui P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [Phase 06-migration-plan-schema-and-brief-integration]: saveMigrationPlan includes mkdir -p safety guard; utility pages excluded from plan; CMS templates no children
 - [Phase 06-migration-plan-schema-and-brief-integration]: Migration Plan brief section is static (no params) — plan file is the dynamic content, brief explains how to use it
 - [Phase 06-migration-plan-schema-and-brief-integration]: Plan generation shares Step 6 try/catch with brief — plan write failure blocks the done step, no new error state needed
+- [Phase 07-01]: loadMigrationPlan returns null on both shell failure and JSON parse error — consistent null-safe API
+- [Phase 07-01]: Leaf-counting rule: page items with children use children as leaves; childless items are themselves leaves
+- [Phase 07-01]: computePageProgress handles childless item as 0/1 or 1/1 — safe for progress bar rendering
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:52:09.573Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-progress-tracking-ui/07-CONTEXT.md
+Last session: 2026-03-18T14:12:09.158Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None

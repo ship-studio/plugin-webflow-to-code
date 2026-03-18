@@ -27,10 +27,10 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 
 ### Progress UI
 
-- [ ] **PROG-01**: Plugin shows expandable per-page progress (page name, section count, completion fraction)
-- [ ] **PROG-02**: Expanded page shows individual sections/components with checkmark or pending status
-- [ ] **PROG-03**: Overall progress bar/percentage shown across all pages
-- [ ] **PROG-04**: Plugin polls `.shipstudio/migration-plan.json` every 30s to refresh progress
+- [x] **PROG-01**: Plugin shows expandable per-page progress (page name, section count, completion fraction)
+- [x] **PROG-02**: Expanded page shows individual sections/components with checkmark or pending status
+- [x] **PROG-03**: Overall progress bar/percentage shown across all pages
+- [x] **PROG-04**: Plugin polls `.shipstudio/migration-plan.json` every 30s to refresh progress
 
 ### Session Handoff
 
@@ -76,10 +76,10 @@ Requirements for Migration Tracker milestone. Each maps to roadmap phases.
 | PLAN-02 | Phase 6 | Complete |
 | PLAN-03 | Phase 6 | Complete |
 | PLAN-04 | Phase 6 | Complete |
-| PROG-01 | Phase 7 | Pending |
-| PROG-02 | Phase 7 | Pending |
-| PROG-03 | Phase 7 | Pending |
-| PROG-04 | Phase 7 | Pending |
+| PROG-01 | Phase 7 | Complete |
+| PROG-02 | Phase 7 | Complete |
+| PROG-03 | Phase 7 | Complete |
+| PROG-04 | Phase 7 | Complete |
 | HAND-01 | Phase 8 | Pending |
 | HAND-02 | Phase 8 | Pending |
 | HAND-03 | Phase 8 | Pending |
