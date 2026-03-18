@@ -1515,7 +1515,7 @@ function MigrationProgress({ shell, projectPath }) {
       {
         className: "btn-primary",
         onClick: handleContinueMigration,
-        style: { width: "100%", marginTop: "12px" },
+        style: { width: "100%", marginTop: "12px", marginBottom: "8px" },
         children: resumeCopied ? "Prompt copied — paste into your agent" : "Copy Resume Prompt"
       }
     )
