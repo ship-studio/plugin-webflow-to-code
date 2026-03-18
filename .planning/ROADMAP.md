@@ -124,18 +124,17 @@ Plans:
 - [x] 07-02-PLAN.md — MigrationProgress component with polling, expand/collapse, progress bar, wired into MainView
 
 #### Phase 8: Session Handoff
-**Goal**: Users can stop an agent session and resume it later in one click — the plugin tells them when it is waiting for the plan to appear, detects when it does, and provides a ready-to-paste resume prompt
+**Goal**: Users can stop an agent session and resume it later in one click — the plugin provides a ready-to-paste resume prompt that points to the plan file and brief
 **Depends on**: Phase 7
 **Requirements**: HAND-01, HAND-02, HAND-03
 **Success Criteria** (what must be TRUE):
   1. After the brief is copied, the plugin shows a "Waiting for plan" state that tells the user the agent must create the plan file before progress tracking begins
   2. The plugin automatically transitions to the progress view the first time `.shipstudio/migration-plan.json` appears (no manual refresh required)
   3. A "Continue Migration" button is visible in the progress view and copies a resume prompt that tells the agent to read the plan file and brief, then continue from where it left off
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 08-01: Waiting state UI and auto-transition logic (poll for plan file existence, switch view on detection)
-- [ ] 08-02: Continue Migration button — resume prompt generation and clipboard copy with confirmation
+- [ ] 08-01-PLAN.md — Resume prompt generator (TDD) and Continue Migration button in MigrationProgress component
 
 ## Progress
 
@@ -149,6 +148,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 | 3. Asset Pipeline | v1.0 | 2/2 | Complete | 2026-03-16 |
 | 4. Site Analysis | v1.0 | 3/3 | Complete | 2026-03-16 |
 | 5. Brief Generation and Full UI | v1.0 | 2/2 | Complete | 2026-03-16 |
-| 6. Migration Plan Schema and Brief Integration | 2/2 | Complete   | 2026-03-18 | - |
-| 7. Progress Tracking UI | 2/2 | Complete   | 2026-03-18 | - |
-| 8. Session Handoff | v1.1 | 0/2 | Not started | - |
+| 6. Migration Plan Schema and Brief Integration | v1.1 | 2/2 | Complete | 2026-03-18 |
+| 7. Progress Tracking UI | v1.1 | 2/2 | Complete | 2026-03-18 |
+| 8. Session Handoff | v1.1 | 0/1 | Not started | - |
