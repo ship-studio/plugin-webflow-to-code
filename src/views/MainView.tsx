@@ -8,6 +8,7 @@ import { generateBrief } from '../brief/generate';
 import { saveBrief, copyToClipboard } from '../brief/io';
 import { generateMigrationPlan } from '../plan/generate';
 import { saveMigrationPlan } from '../plan/io';
+import { MigrationProgress } from '../components/MigrationProgress';
 import type { BriefResult, PreserveOption } from '../brief/types';
 import { PRESERVE_OPTIONS, DEFAULT_PRESERVE } from '../brief/types';
 import type { ZipStep } from '../zip/types';
@@ -278,43 +279,49 @@ export function MainView() {
         )}
 
         {step.kind === 'done' && step.briefResult && (
-          <div className="wf2c-results">
-            <div className="wf2c-results-header">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                <circle cx="8" cy="8" r="8" fill="#4caf50" />
-                <path d="M4.5 8.5L7 11L11.5 5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Brief ready
-            </div>
-            <div className="wf2c-results-stats">
-              {step.siteAnalysis?.contentPageCount} pages &middot;{' '}
-              {(step.assetManifest?.images.length ?? 0) + (step.assetManifest?.videos.length ?? 0) + (step.assetManifest?.fonts.length ?? 0)} assets &middot;{' '}
-              ~{Math.round(step.briefResult.estimatedTokens / 1000)}K tokens
-            </div>
-            {isMultiSession && (
-              <div className="wf2c-results-tip">
-                This site has {pageCount} pages — it will take multiple prompts to build. A migration plan file tracks progress across sessions. The brief tells the AI how to use it.
+          <>
+            <div className="wf2c-results">
+              <div className="wf2c-results-header">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                  <circle cx="8" cy="8" r="8" fill="#4caf50" />
+                  <path d="M4.5 8.5L7 11L11.5 5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Brief ready
               </div>
-            )}
-            <div className="wf2c-results-output">
-              <span className="wf2c-results-output-label">Output</span>
-              <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
-              <div className="wf2c-results-path">.shipstudio/migration-plan.json</div>
+              <div className="wf2c-results-stats">
+                {step.siteAnalysis?.contentPageCount} pages &middot;{' '}
+                {(step.assetManifest?.images.length ?? 0) + (step.assetManifest?.videos.length ?? 0) + (step.assetManifest?.fonts.length ?? 0)} assets &middot;{' '}
+                ~{Math.round(step.briefResult.estimatedTokens / 1000)}K tokens
+              </div>
+              {isMultiSession && (
+                <div className="wf2c-results-tip">
+                  This site has {pageCount} pages — it will take multiple prompts to build. A migration plan file tracks progress across sessions. The brief tells the AI how to use it.
+                </div>
+              )}
+              <div className="wf2c-results-output">
+                <span className="wf2c-results-output-label">Output</span>
+                <div className="wf2c-results-path">.shipstudio/assets/brief.md</div>
+                <div className="wf2c-results-path">.shipstudio/migration-plan.json</div>
+              </div>
+              <button
+                className="btn-primary"
+                onClick={handleCopyBrief}
+                style={{ width: '100%' }}
+              >
+                {copied ? 'Copied!' : 'Copy Brief to Clipboard'}
+              </button>
+              <button
+                className="wf2c-btn-ghost"
+                onClick={handleRetry}
+              >
+                Start Over
+              </button>
             </div>
-            <button
-              className="btn-primary"
-              onClick={handleCopyBrief}
-              style={{ width: '100%' }}
-            >
-              {copied ? 'Copied!' : 'Copy Brief to Clipboard'}
-            </button>
-            <button
-              className="wf2c-btn-ghost"
-              onClick={handleRetry}
-            >
-              Start Over
-            </button>
-          </div>
+            <MigrationProgress
+              shell={shellRef.current!}
+              projectPath={ctx?.project?.path ?? ''}
+            />
+          </>
         )}
 
         {step.kind === 'done' && !step.briefResult && (
