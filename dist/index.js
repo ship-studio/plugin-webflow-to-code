@@ -1753,6 +1753,7 @@ function MainView() {
             onClick: () => {
               setHasExistingPlan(false);
             },
+            style: { marginBottom: "8px" },
             children: "New Migration"
           }
         )
