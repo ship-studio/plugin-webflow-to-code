@@ -89,7 +89,7 @@ Plans:
 
 </details>
 
-### 🚧 v1.1 Migration Tracker (In Progress)
+### v1.1 Migration Tracker (In Progress)
 
 **Milestone Goal:** Evolve the plugin from a brief generator into an end-to-end migration helper — agents create a structured plan file, the plugin reads it live, and users can pause and resume across sessions with one click.
 
@@ -102,11 +102,11 @@ Plans:
   2. The schema includes all pages with nested sections/components, each carrying a status field (`pending`, `in-progress`, `complete`)
   3. Shared components (nav, footer) appear as top-level items in the plan schema, not nested under a page
   4. The brief instructs the agent to update each item's status as it completes it — so the file reflects live progress
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 06-01: Design migration-plan.json schema (TypeScript types, validation, example fixture) with unit tests
-- [ ] 06-02: Update brief generation to inject migration plan instructions and schema reference
+- [ ] 06-01-PLAN.md — Migration plan types, skeleton generator, and I/O with TDD (src/plan/ module)
+- [ ] 06-02-PLAN.md — Replace Session Tracker with plan preamble in brief, wire MainView pipeline
 
 #### Phase 7: Progress Tracking UI
 **Goal**: Users can see exactly where their migration stands — per-page, per-section — without leaving the plugin, and the view refreshes automatically as the agent works
@@ -140,7 +140,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
