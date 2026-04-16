@@ -334,8 +334,11 @@ function usePluginContext() {
   const React = _w.__SHIPSTUDIO_REACT__;
   const CtxRef = _w.__SHIPSTUDIO_PLUGIN_CONTEXT_REF__;
   if (CtxRef && (React == null ? void 0 : React.useContext)) {
-    return React.useContext(CtxRef);
+    const ctx = React.useContext(CtxRef);
+    if (ctx) return ctx;
   }
+  const directCtx = _w.__SHIPSTUDIO_PLUGIN_CONTEXT__;
+  if (directCtx) return directCtx;
   return null;
 }
 function parseUnzipManifest(stdout) {
