@@ -404,8 +404,8 @@ async function extractAndVerify(shell, zipPath, extractDir, onProgress) {
   await shell.exec("mkdir", ["-p", extractDir]);
   onProgress == null ? void 0 : onProgress(`Extracting zip... (${manifest.fileCount} files)`);
   const extractResult = await shell.exec(
-    "unzip",
-    ["-o", zipPath, "-d", extractDir],
+    "ditto",
+    ["-x", "-k", zipPath, extractDir],
     { timeout: 3e5 }
   );
   if (extractResult.exit_code !== 0) {
