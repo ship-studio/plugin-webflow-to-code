@@ -117,7 +117,10 @@ describe('parsePage', () => {
 </html>`;
 
   function makeShellForHtml(html: string): Shell {
-    const encoded = btoa(html);
+    const bytes = new TextEncoder().encode(html);
+    let binary = '';
+    for (const b of bytes) binary += String.fromCharCode(b);
+    const encoded = btoa(binary);
     return createMockShell([
       { exit_code: 0, stdout: encoded, stderr: '' },
     ]);
@@ -127,6 +130,16 @@ describe('parsePage', () => {
     const shell = makeShellForHtml(sampleHtml);
     const result = await parsePage(shell, '/tmp/out/index.html', 'index.html');
     expect(result.title).toBe('My Page');
+  });
+
+  it('preserves non-ASCII UTF-8 characters in titles (no mojibake)', async () => {
+    const html =
+      '<!DOCTYPE html><html data-wf-page="x"><head>' +
+      '<title>Mentions Légales — Événements Privés & Réceptions</title>' +
+      '</head><body></body></html>';
+    const shell = makeShellForHtml(html);
+    const result = await parsePage(shell, '/tmp/out/legal.html', 'legal.html');
+    expect(result.title).toBe('Mentions Légales — Événements Privés & Réceptions');
   });
 
   it('extracts data-wf-page attribute', async () => {

@@ -83,7 +83,11 @@ export async function parsePage(
   filename: string,
 ): Promise<PageInfo> {
   const { stdout } = await shell.exec('bash', ['-c', `base64 < '${htmlPath}'`]);
-  const html = atob(stdout.trim());
+  // Decode base64 → bytes → UTF-8. Plain `atob` returns a Latin-1 binary string,
+  // which mangles multi-byte UTF-8 sequences (e.g. "é" → "Ã©") and propagates
+  // mojibake into every downstream title/label.
+  const bytes = Uint8Array.from(atob(stdout.trim()), (c) => c.charCodeAt(0));
+  const html = new TextDecoder('utf-8').decode(bytes);
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 

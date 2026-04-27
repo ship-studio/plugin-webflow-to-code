@@ -727,7 +727,8 @@ function isUtilityPage(filename) {
 async function parsePage(shell, htmlPath, filename) {
   var _a;
   const { stdout } = await shell.exec("bash", ["-c", `base64 < '${htmlPath}'`]);
-  const html = atob(stdout.trim());
+  const bytes = Uint8Array.from(atob(stdout.trim()), (c) => c.charCodeAt(0));
+  const html = new TextDecoder("utf-8").decode(bytes);
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const title = ((_a = doc.querySelector("title")) == null ? void 0 : _a.textContent) ?? "";
