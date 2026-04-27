@@ -62,11 +62,14 @@ export async function extractAndVerify(
   // 2. Create destination
   await shell.exec('mkdir', ['-p', extractDir]);
 
-  // 3. Extract with 5-minute timeout
+  // 3. Extract with 5-minute timeout.
+  // Use `ditto` instead of `unzip`: macOS's bundled unzip (Info-ZIP 6.00) doesn't
+  // decode UTF-8 filenames, so accented characters get mangled into byte sequences
+  // the filesystem rejects — surfaced as a misleading "(disk full?)" interactive prompt.
   onProgress?.(`Extracting zip... (${manifest.fileCount} files)`);
   const extractResult = await shell.exec(
-    'unzip',
-    ['-o', zipPath, '-d', extractDir],
+    'ditto',
+    ['-x', '-k', zipPath, extractDir],
     { timeout: 300000 },
   );
   if (extractResult.exit_code !== 0) {

@@ -79,13 +79,13 @@ describe('extractAndVerify', () => {
  35767120                     4 files
 `;
 
-  it('calls unzip -l, mkdir -p, unzip -o with 300000 timeout, then find in order', async () => {
+  it('calls unzip -l, mkdir -p, ditto -x -k with 300000 timeout, then find in order', async () => {
     const shell = createMockShell([
       // unzip -l
       { exit_code: 0, stdout: SAMPLE_UNZIP_LIST, stderr: '' },
       // mkdir -p
       { exit_code: 0, stdout: '', stderr: '' },
-      // unzip -o
+      // ditto -x -k
       { exit_code: 0, stdout: '', stderr: '' },
       // find count (3 files — css/ directory entry excluded from fileCount)
       { exit_code: 0, stdout: '3', stderr: '' },
@@ -96,7 +96,7 @@ describe('extractAndVerify', () => {
     expect(shell.exec).toHaveBeenCalledTimes(4);
     expect(shell.exec).toHaveBeenNthCalledWith(1, 'unzip', ['-l', '/path/site.zip']);
     expect(shell.exec).toHaveBeenNthCalledWith(2, 'mkdir', ['-p', '/tmp/out']);
-    expect(shell.exec).toHaveBeenNthCalledWith(3, 'unzip', ['-o', '/path/site.zip', '-d', '/tmp/out'], { timeout: 300000 });
+    expect(shell.exec).toHaveBeenNthCalledWith(3, 'ditto', ['-x', '-k', '/path/site.zip', '/tmp/out'], { timeout: 300000 });
     expect(shell.exec).toHaveBeenNthCalledWith(4, 'bash', ['-c', expect.stringContaining('find')]);
   });
 
