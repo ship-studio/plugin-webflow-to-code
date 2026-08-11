@@ -1,18 +1,18 @@
 import type { MigrationPlan, PlanItem } from './types';
-
-interface ShellLike {
-  exec(cmd: string, args: string[]): Promise<{ exit_code: number; stdout: string; stderr: string }>;
-}
+import type { Shell } from '../types';
+import { readFileBase64, decodeBase64 } from '../platform';
 
 export async function loadMigrationPlan(
-  shell: ShellLike,
+  shell: Shell,
   projectPath: string,
 ): Promise<MigrationPlan | null> {
   const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
-  const result = await shell.exec('bash', ['-c', `cat '${planPath}' | base64`]);
+  // Node read instead of `bash -c "cat | base64"` — cross-platform
+  // (ship-studio/ship-studio#659).
+  const result = await readFileBase64(shell, planPath);
   if (result.exit_code !== 0) return null;
   try {
-    const json = decodeURIComponent(escape(atob(result.stdout.trim())));
+    const json = decodeBase64(result.stdout.trim());
     return JSON.parse(json) as MigrationPlan;
   } catch {
     return null;

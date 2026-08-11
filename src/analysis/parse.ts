@@ -1,6 +1,7 @@
 import type { Shell } from '../types';
 import type { PageInfo, SectionItem } from './types';
 import { detectComponents, detectInteractions } from './webflow';
+import { readFileBase64, decodeBase64 } from '../platform';
 
 /**
  * Filter ZipManifest entries to only .html files,
@@ -82,12 +83,13 @@ export async function parsePage(
   htmlPath: string,
   filename: string,
 ): Promise<PageInfo> {
-  const { stdout } = await shell.exec('bash', ['-c', `base64 < '${htmlPath}'`]);
-  // Decode base64 → bytes → UTF-8. Plain `atob` returns a Latin-1 binary string,
-  // which mangles multi-byte UTF-8 sequences (e.g. "é" → "Ã©") and propagates
-  // mojibake into every downstream title/label.
-  const bytes = Uint8Array.from(atob(stdout.trim()), (c) => c.charCodeAt(0));
-  const html = new TextDecoder('utf-8').decode(bytes);
+  // Read via Node (cross-platform; the previous `bash -c "base64 < …"` was
+  // macOS/Linux-only — ship-studio/ship-studio#659). Base64 → bytes → UTF-8:
+  // plain `atob` returns a Latin-1 binary string, which mangles multi-byte
+  // UTF-8 sequences (e.g. "é" → "Ã©") and propagates mojibake into every
+  // downstream title/label.
+  const { stdout } = await readFileBase64(shell, htmlPath);
+  const html = decodeBase64(stdout.trim());
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 

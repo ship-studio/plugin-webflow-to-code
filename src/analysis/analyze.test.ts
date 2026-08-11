@@ -41,10 +41,8 @@ function makeHtml(opts: {
 function createMockShell(htmlByPath: Record<string, string>): Shell {
   return {
     exec: vi.fn(async (_cmd: string, args: string[]) => {
-      // Parse the base64 command to extract path: bash -c "base64 < '/path/to/file'"
-      const cmdStr = args[1] ?? '';
-      const pathMatch = cmdStr.match(/base64 < '([^']+)'/);
-      const path = pathMatch?.[1] ?? '';
+      // Files are read via `node -e <script> <path>` — the path travels via argv
+      const path = args[2] ?? '';
       const html = htmlByPath[path];
       if (!html) throw new Error(`No mock HTML for path: ${path}`);
       return { exit_code: 0, stdout: btoa(html), stderr: '' };
@@ -77,10 +75,11 @@ describe('buildSiteAnalysis', () => {
 
     await buildSiteAnalysis(shell, entries, '/extract/dir');
 
-    // Verify shell.exec was called with the correct path
+    // Verify shell.exec was called with the correct path (node read, path via argv)
     expect(shell.exec).toHaveBeenCalledWith(
-      'bash',
-      ['-c', "base64 < '/extract/dir/index.html'"],
+      'node',
+      expect.arrayContaining(['/extract/dir/index.html']),
+      expect.any(Object),
     );
   });
 

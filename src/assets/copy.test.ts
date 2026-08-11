@@ -17,8 +17,9 @@ function createMockShell(
 }
 
 const ok = { exit_code: 0, stdout: '', stderr: '' };
-const exists = { exit_code: 0, stdout: 'exists\n', stderr: '' };
-const absent = { exit_code: 0, stdout: 'absent\n', stderr: '' };
+// dirExists prints '1' (exists) or '0' (absent) via node
+const exists = { exit_code: 0, stdout: '1', stderr: '' };
+const absent = { exit_code: 0, stdout: '0', stderr: '' };
 
 const SAMPLE_ENTRIES = [
   'css/',
@@ -37,26 +38,27 @@ const SAMPLE_ENTRIES = [
 ];
 
 describe('copyAssets', () => {
-  it('calls mkdir -p for base assets dir first', async () => {
-    // mkdir assets, then all 5 dirs: test+mkdir+cp or test(absent)
+  it('creates the base assets dir first via node mkdir', async () => {
     const shell = createMockShell([
-      ok,       // mkdir -p assetsDir
-      exists, ok, ok,  // images: test, mkdir, cp
-      exists, ok, ok,  // videos: test, mkdir, cp
-      exists, ok, ok,  // fonts: test, mkdir, cp
-      exists, ok, ok,  // css: test, mkdir, cp
-      exists, ok, ok,  // js: test, mkdir, cp
+      ok,       // mkdir assetsDir
+      exists, ok, ok,  // images: exists, mkdir, cp
+      exists, ok, ok,  // videos: exists, mkdir, cp
+      exists, ok, ok,  // fonts: exists, mkdir, cp
+      exists, ok, ok,  // css: exists, mkdir, cp
+      exists, ok, ok,  // js: exists, mkdir, cp
     ]);
 
     await copyAssets(shell, '/tmp/out', '/proj', SAMPLE_ENTRIES);
 
     const calls = (shell.exec as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls[0]).toEqual(['mkdir', ['-p', '/proj/.shipstudio/assets']]);
+    expect(calls[0][0]).toBe('node');
+    expect(calls[0][1].join(' ')).toContain('mkdirSync');
+    expect(calls[0][1]).toContain('/proj/.shipstudio/assets');
   });
 
-  it('calls test -d, mkdir, cp for images directory', async () => {
+  it('checks existence, creates dir, and copies for images — all via node', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
       absent,           // fonts (skipped)
@@ -67,19 +69,21 @@ describe('copyAssets', () => {
     await copyAssets(shell, '/tmp/out', '/proj', SAMPLE_ENTRIES);
 
     const calls = (shell.exec as ReturnType<typeof vi.fn>).mock.calls;
-    // Call 1 = test -d images
-    expect(calls[1][0]).toBe('bash');
-    expect(calls[1][1][1]).toContain("test -d '/tmp/out/images'");
-    // Call 2 = mkdir -p images dest
-    expect(calls[2]).toEqual(['mkdir', ['-p', '/proj/.shipstudio/assets/images']]);
-    // Call 3 = cp -r images
-    expect(calls[3][0]).toBe('bash');
-    expect(calls[3][1][1]).toContain("cp -r '/tmp/out/images/.'");
+    // Call 1 = dir existence check for images
+    expect(calls[1][0]).toBe('node');
+    expect(calls[1][1]).toContain('/tmp/out/images');
+    // Call 2 = mkdir images dest
+    expect(calls[2][1].join(' ')).toContain('mkdirSync');
+    expect(calls[2][1]).toContain('/proj/.shipstudio/assets/images');
+    // Call 3 = recursive copy
+    expect(calls[3][1].join(' ')).toContain('cpSync');
+    expect(calls[3][1]).toContain('/tmp/out/images');
+    expect(calls[3][1]).toContain('/proj/.shipstudio/assets/images');
   });
 
-  it('calls test -d, mkdir, cp for videos directory with 300000 timeout', async () => {
+  it('gives the videos copy a 300 second timeout (seconds, not ms)', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
       absent,           // fonts (skipped)
@@ -90,16 +94,18 @@ describe('copyAssets', () => {
     await copyAssets(shell, '/tmp/out', '/proj', SAMPLE_ENTRIES);
 
     const calls = (shell.exec as ReturnType<typeof vi.fn>).mock.calls;
-    // videos cp is call index 7 (after mkdir:0, img-test:1, img-mkdir:2, img-cp:3, vid-test:4, vid-mkdir:5, vid-cp:6)
-    expect(calls[6][2]).toEqual({ timeout: 300000 });
+    // videos cp is call index 6 (mkdir:0, img-exists:1, img-mkdir:2, img-cp:3, vid-exists:4, vid-mkdir:5, vid-cp:6)
+    expect(calls[6][2]).toEqual({ timeout: 300 });
+    // other copies use the 120 second default
+    expect(calls[3][2]).toEqual({ timeout: 120 });
   });
 
-  it('skips fonts when test -d returns "absent"', async () => {
+  it('skips fonts when the directory is absent', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
-      absent,           // fonts: test returns absent, no mkdir/cp
+      absent,           // fonts: absent, no mkdir/cp
       exists, ok, ok,   // css
       exists, ok, ok,   // js
     ]);
@@ -107,15 +113,15 @@ describe('copyAssets', () => {
     await copyAssets(shell, '/tmp/out', '/proj', SAMPLE_ENTRIES);
 
     const calls = (shell.exec as ReturnType<typeof vi.fn>).mock.calls;
-    // fonts test is call index 7
-    expect(calls[7][1][1]).toContain("test -d '/tmp/out/fonts'");
-    // Next call after fonts test should be css test (no mkdir/cp for fonts)
-    expect(calls[8][1][1]).toContain("test -d '/tmp/out/css'");
+    // fonts existence check is call index 7
+    expect(calls[7][1]).toContain('/tmp/out/fonts');
+    // Next call after fonts check should be css check (no mkdir/cp for fonts)
+    expect(calls[8][1]).toContain('/tmp/out/css');
   });
 
   it('copies css and js directories', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
       absent,           // fonts
@@ -127,14 +133,16 @@ describe('copyAssets', () => {
 
     const calls = (shell.exec as ReturnType<typeof vi.fn>).mock.calls;
     // css cp (call 10)
-    expect(calls[10][1][1]).toContain("cp -r '/tmp/out/css/.'");
+    expect(calls[10][1].join(' ')).toContain('cpSync');
+    expect(calls[10][1]).toContain('/tmp/out/css');
     // js cp (call 13)
-    expect(calls[13][1][1]).toContain("cp -r '/tmp/out/js/.'");
+    expect(calls[13][1].join(' ')).toContain('cpSync');
+    expect(calls[13][1]).toContain('/tmp/out/js');
   });
 
   it('returns AssetManifest from buildManifest', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
       absent,           // fonts
@@ -153,7 +161,7 @@ describe('copyAssets', () => {
 
   it('calls onProgress with correct labels in order', async () => {
     const shell = createMockShell([
-      ok,               // mkdir -p assetsDir
+      ok,               // mkdir assetsDir
       exists, ok, ok,   // images
       exists, ok, ok,   // videos
       absent,           // fonts (skipped — no onProgress call)

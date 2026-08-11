@@ -341,6 +341,80 @@ function usePluginContext() {
   if (directCtx) return directCtx;
   return null;
 }
+const IS_WINDOWS = typeof navigator !== "undefined" && (/Windows/i.test(navigator.userAgent || "") || /Win/i.test(navigator.platform || ""));
+const QUICK_TIMEOUT = 15;
+function encodeBase64(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+function decodeBase64(encoded) {
+  const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
+}
+function quoteForPowerShell(value) {
+  return "'" + value.replace(/'/g, "''") + "'";
+}
+function readFileBase64(shell, path) {
+  return shell.exec(
+    "node",
+    [
+      "-e",
+      "process.stdout.write(require('fs').readFileSync(process.argv[1]).toString('base64'))",
+      path
+    ],
+    { timeout: QUICK_TIMEOUT }
+  );
+}
+const B64_CHUNK = 6e3;
+async function writeBase64File(shell, encoded, path) {
+  const script = "const fs=require('fs'),p=require('path');fs.mkdirSync(p.dirname(process.argv[2]),{recursive:true});fs.writeFileSync(process.argv[2],Buffer.from(process.argv[1],'base64'),{flag:process.argv[3]})";
+  for (let i = 0; i === 0 || i < encoded.length; i += B64_CHUNK) {
+    const chunk = encoded.slice(i, i + B64_CHUNK);
+    const flag = i === 0 ? "w" : "a";
+    const result = await shell.exec("node", ["-e", script, chunk, path, flag], {
+      timeout: QUICK_TIMEOUT
+    });
+    if (result.exit_code !== 0) {
+      throw new Error(result.stderr || `write failed (exit code ${result.exit_code})`);
+    }
+  }
+}
+function makeDir(shell, dir) {
+  return shell.exec(
+    "node",
+    ["-e", "require('fs').mkdirSync(process.argv[1],{recursive:true})", dir],
+    { timeout: QUICK_TIMEOUT }
+  );
+}
+async function dirExists(shell, dir) {
+  const result = await shell.exec(
+    "node",
+    [
+      "-e",
+      "const fs=require('fs');process.stdout.write(fs.existsSync(process.argv[1])&&fs.statSync(process.argv[1]).isDirectory()?'1':'0')",
+      dir
+    ],
+    { timeout: QUICK_TIMEOUT }
+  );
+  return result.exit_code === 0 && result.stdout.trim() === "1";
+}
+function copyDir(shell, srcDir, destDir, timeoutSeconds = 120) {
+  return shell.exec(
+    "node",
+    [
+      "-e",
+      "require('fs').cpSync(process.argv[1],process.argv[2],{recursive:true})",
+      srcDir,
+      destDir
+    ],
+    { timeout: timeoutSeconds }
+  );
+}
+async function countFiles(shell, dir) {
+  const script = "const fs=require('fs'),p=require('path');let n=0;const w=d=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=p.join(d,e.name);if(e.isDirectory())w(f);else if(e.isFile())n++}};w(process.argv[1]);process.stdout.write(String(n))";
+  const result = await shell.exec("node", ["-e", script, dir], { timeout: QUICK_TIMEOUT });
+  if (result.exit_code !== 0) return NaN;
+  return parseInt(result.stdout.trim(), 10);
+}
 function parseUnzipManifest(stdout) {
   const lines = stdout.split("\n");
   const entries = [];
@@ -362,22 +436,39 @@ async function validateWebflowExport(shell, extractDir, entries) {
   if (!hasCss) {
     throw new Error("Missing CSS directory — is this a Webflow export?");
   }
-  const grepResult = await shell.exec("bash", [
-    "-c",
-    `grep -c 'data-wf-site' '${extractDir}/index.html' 2>/dev/null || echo 0`
-  ]);
-  const wfSiteCount = parseInt(grepResult.stdout.trim(), 10);
-  if (wfSiteCount === 0) {
+  const readResult = await readFileBase64(shell, `${extractDir}/index.html`);
+  const indexHtml = readResult.exit_code === 0 ? decodeBase64(readResult.stdout.trim()) : "";
+  if (!indexHtml.includes("data-wf-site")) {
     throw new Error(
       "No data-wf-site attribute found — this may not be a Webflow export"
     );
   }
 }
-async function pickZipFile(shell) {
-  const result = await shell.exec("osascript", [
-    "-e",
-    'POSIX path of (choose file with prompt "Select Webflow export zip" of type {"zip"})'
-  ]);
+const PICKER_TIMEOUT = 300;
+const LIST_TIMEOUT = 30;
+const EXTRACT_TIMEOUT = 300;
+async function pickZipFile(shell, isWindows = IS_WINDOWS) {
+  if (isWindows) {
+    const psScript = "Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.OpenFileDialog; $f.Filter = 'Zip archives (*.zip)|*.zip'; $f.Title = 'Select Webflow export zip'; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($f.FileName) }";
+    const result2 = await shell.exec(
+      "powershell",
+      ["-NoProfile", "-STA", "-Command", psScript],
+      { timeout: PICKER_TIMEOUT }
+    );
+    if (result2.exit_code !== 0) {
+      throw new Error(`File picker failed: ${result2.stderr.trim()}`);
+    }
+    const winPath = result2.stdout.trim();
+    return winPath || null;
+  }
+  const result = await shell.exec(
+    "osascript",
+    [
+      "-e",
+      'POSIX path of (choose file with prompt "Select Webflow export zip" of type {"zip"})'
+    ],
+    { timeout: PICKER_TIMEOUT }
+  );
   if (result.exit_code !== 0) {
     if (result.stderr.includes("-128")) {
       return null;
@@ -391,31 +482,51 @@ async function pickZipFile(shell) {
   return path;
 }
 function buildExtractDir(projectPath, zipPath) {
-  const zipFileName = zipPath.split("/").pop();
+  const zipFileName = zipPath.split(/[\\/]/).pop();
   const sanitizedName = zipFileName.replace(/\.zip$/i, "").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 60);
   return `${projectPath}/.shipstudio/tmp/${sanitizedName}`;
 }
-async function extractAndVerify(shell, zipPath, extractDir, onProgress) {
-  const listResult = await shell.exec("unzip", ["-l", zipPath]);
+async function readZipManifest(shell, zipPath, isWindows) {
+  if (isWindows) {
+    const psScript = `Add-Type -AssemblyName System.IO.Compression.FileSystem; $z = [System.IO.Compression.ZipFile]::OpenRead(${quoteForPowerShell(zipPath)}); foreach ($e in $z.Entries) { [Console]::Out.WriteLine($e.FullName) }; $z.Dispose()`;
+    const listResult2 = await shell.exec(
+      "powershell",
+      ["-NoProfile", "-NonInteractive", "-Command", psScript],
+      { timeout: LIST_TIMEOUT }
+    );
+    if (listResult2.exit_code !== 0) {
+      throw new Error(`Cannot read zip manifest: ${listResult2.stderr.trim()}`);
+    }
+    const entries = listResult2.stdout.split(/\r?\n/).map((line) => line.replace(/\\/g, "/").trim()).filter((line) => line.length > 0);
+    const fileCount = entries.filter((e) => !e.endsWith("/")).length;
+    return { fileCount, entries };
+  }
+  const listResult = await shell.exec("unzip", ["-l", zipPath], { timeout: LIST_TIMEOUT });
   if (listResult.exit_code !== 0) {
     throw new Error(`Cannot read zip manifest: ${listResult.stderr.trim()}`);
   }
-  const manifest = parseUnzipManifest(listResult.stdout);
-  await shell.exec("mkdir", ["-p", extractDir]);
+  return parseUnzipManifest(listResult.stdout);
+}
+async function extractAndVerify(shell, zipPath, extractDir, onProgress, isWindows = IS_WINDOWS) {
+  const manifest = await readZipManifest(shell, zipPath, isWindows);
+  await makeDir(shell, extractDir);
   onProgress == null ? void 0 : onProgress(`Extracting zip... (${manifest.fileCount} files)`);
-  const extractResult = await shell.exec(
-    "ditto",
-    ["-x", "-k", zipPath, extractDir],
-    { timeout: 3e5 }
-  );
+  const extractResult = isWindows ? await shell.exec(
+    "powershell",
+    [
+      "-NoProfile",
+      "-NonInteractive",
+      "-Command",
+      `Expand-Archive -LiteralPath ${quoteForPowerShell(zipPath)} -DestinationPath ${quoteForPowerShell(extractDir)} -Force`
+    ],
+    { timeout: EXTRACT_TIMEOUT }
+  ) : await shell.exec("ditto", ["-x", "-k", zipPath, extractDir], {
+    timeout: EXTRACT_TIMEOUT
+  });
   if (extractResult.exit_code !== 0) {
     throw new Error(`Extraction failed: ${extractResult.stderr.trim()}`);
   }
-  const countResult = await shell.exec("bash", [
-    "-c",
-    `find '${extractDir}' -type f | wc -l | tr -d ' '`
-  ]);
-  const actual = parseInt(countResult.stdout.trim(), 10);
+  const actual = await countFiles(shell, extractDir);
   if (actual < manifest.fileCount - 2) {
     throw new Error(
       `Extraction incomplete: expected ~${manifest.fileCount} files, found ${actual}. The zip may be corrupted.`
@@ -560,29 +671,23 @@ function buildManifest(entries, assetsDir, projectPath) {
     totalCopied
   };
 }
-async function copyDirIfExists(shell, srcDir, destDir, label, onProgress, timeout) {
-  const check = await shell.exec("bash", [
-    "-c",
-    `test -d '${srcDir}' && echo exists || echo absent`
-  ]);
-  if (check.stdout.trim() === "absent") return;
+const COPY_TIMEOUT = 120;
+const VIDEO_COPY_TIMEOUT = 300;
+async function copyDirIfExists(shell, srcDir, destDir, label, onProgress, timeoutSeconds) {
+  if (!await dirExists(shell, srcDir)) return;
   onProgress == null ? void 0 : onProgress(label);
-  const mkdirResult = await shell.exec("mkdir", ["-p", destDir]);
+  const mkdirResult = await makeDir(shell, destDir);
   if (mkdirResult.exit_code !== 0) {
     throw new Error(`Failed to create directory ${destDir}: ${mkdirResult.stderr.trim()}`);
   }
-  const cpResult = await shell.exec(
-    "bash",
-    ["-c", `cp -r '${srcDir}/.' '${destDir}/'`],
-    { timeout: timeout ?? 12e4 }
-  );
+  const cpResult = await copyDir(shell, srcDir, destDir, timeoutSeconds ?? COPY_TIMEOUT);
   if (cpResult.exit_code !== 0) {
     throw new Error(`Failed to copy ${srcDir} to ${destDir}: ${cpResult.stderr.trim()}`);
   }
 }
 async function copyAssets(shell, extractDir, projectPath, entries, onProgress) {
   const assetsDir = `${projectPath}/.shipstudio/assets`;
-  const mkdirResult = await shell.exec("mkdir", ["-p", assetsDir]);
+  const mkdirResult = await makeDir(shell, assetsDir);
   if (mkdirResult.exit_code !== 0) {
     throw new Error(`Failed to create assets directory: ${mkdirResult.stderr.trim()}`);
   }
@@ -599,7 +704,7 @@ async function copyAssets(shell, extractDir, projectPath, entries, onProgress) {
     `${assetsDir}/videos`,
     "Copying videos (may take a moment)...",
     onProgress,
-    3e5
+    VIDEO_COPY_TIMEOUT
   );
   await copyDirIfExists(
     shell,
@@ -726,9 +831,8 @@ function isUtilityPage(filename) {
 }
 async function parsePage(shell, htmlPath, filename) {
   var _a;
-  const { stdout } = await shell.exec("bash", ["-c", `base64 < '${htmlPath}'`]);
-  const bytes = Uint8Array.from(atob(stdout.trim()), (c) => c.charCodeAt(0));
-  const html = new TextDecoder("utf-8").decode(bytes);
+  const { stdout } = await readFileBase64(shell, htmlPath);
+  const html = decodeBase64(stdout.trim());
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const title = ((_a = doc.querySelector("title")) == null ? void 0 : _a.textContent) ?? "";
@@ -1225,21 +1329,51 @@ function generateBrief(input) {
 }
 async function saveBrief(shell, projectPath, markdown) {
   const briefPath = `${projectPath}/.shipstudio/assets/brief.md`;
-  const encoded = btoa(unescape(encodeURIComponent(markdown)));
-  const result = await shell.exec("bash", [
-    "-c",
-    `echo '${encoded}' | base64 -d > '${briefPath}'`
-  ]);
-  if (result.exit_code !== 0) {
-    throw new Error(`Failed to save brief: ${result.stderr}`);
+  try {
+    await writeBase64File(shell, encodeBase64(markdown), briefPath);
+  } catch (err) {
+    throw new Error(`Failed to save brief: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
-async function copyToClipboard(shell, markdown) {
-  const encoded = btoa(unescape(encodeURIComponent(markdown)));
-  const result = await shell.exec("bash", [
-    "-c",
-    `echo '${encoded}' | base64 -d | pbcopy`
-  ]);
+async function copyToClipboard(shell, markdown, isWindows = IS_WINDOWS) {
+  const encoded = encodeBase64(markdown);
+  if (!isWindows) {
+    const result2 = await shell.exec(
+      "sh",
+      ["-c", 'printf %s "$0" | base64 -d | pbcopy', encoded],
+      { timeout: QUICK_TIMEOUT }
+    );
+    if (result2.exit_code !== 0) {
+      throw new Error(`Clipboard copy failed: ${result2.stderr}`);
+    }
+    return;
+  }
+  const tmpResult = await shell.exec(
+    "node",
+    [
+      "-e",
+      `process.stdout.write(require('path').join(require('os').tmpdir(),'shipstudio-webflow-brief.b64'))`
+    ],
+    { timeout: QUICK_TIMEOUT }
+  );
+  if (tmpResult.exit_code !== 0 || !tmpResult.stdout.trim()) {
+    throw new Error(
+      `Clipboard copy failed: ${tmpResult.stderr || "could not resolve temp dir"}`
+    );
+  }
+  const tmpPath = tmpResult.stdout.trim();
+  try {
+    await writeBase64File(shell, encoded, tmpPath);
+  } catch (err) {
+    throw new Error(`Clipboard copy failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  const psPath = quoteForPowerShell(tmpPath);
+  const psScript = `Set-Clipboard -Value ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((Get-Content -Raw ${psPath})))); Remove-Item ${psPath} -ErrorAction SilentlyContinue`;
+  const result = await shell.exec(
+    "powershell",
+    ["-NoProfile", "-NonInteractive", "-Command", psScript],
+    { timeout: QUICK_TIMEOUT }
+  );
   if (result.exit_code !== 0) {
     throw new Error(`Clipboard copy failed: ${result.stderr}`);
   }
@@ -1281,24 +1415,22 @@ function generateMigrationPlan(siteAnalysis) {
   };
 }
 async function saveMigrationPlan(shell, projectPath, plan) {
-  const planDir = `${projectPath}/.shipstudio`;
-  const planPath = `${planDir}/migration-plan.json`;
+  const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
   const json = JSON.stringify(plan, null, 2);
-  const encoded = btoa(unescape(encodeURIComponent(json)));
-  const result = await shell.exec("bash", [
-    "-c",
-    `mkdir -p '${planDir}' && echo '${encoded}' | base64 -d > '${planPath}'`
-  ]);
-  if (result.exit_code !== 0) {
-    throw new Error(`Failed to save migration plan: ${result.stderr}`);
+  try {
+    await writeBase64File(shell, encodeBase64(json), planPath);
+  } catch (err) {
+    throw new Error(
+      `Failed to save migration plan: ${err instanceof Error ? err.message : String(err)}`
+    );
   }
 }
 async function loadMigrationPlan(shell, projectPath) {
   const planPath = `${projectPath}/.shipstudio/migration-plan.json`;
-  const result = await shell.exec("bash", ["-c", `cat '${planPath}' | base64`]);
+  const result = await readFileBase64(shell, planPath);
   if (result.exit_code !== 0) return null;
   try {
-    const json = decodeURIComponent(escape(atob(result.stdout.trim())));
+    const json = decodeBase64(result.stdout.trim());
     return JSON.parse(json);
   } catch {
     return null;
