@@ -21,34 +21,27 @@ const mockPlan: MigrationPlan = {
 };
 
 describe('saveMigrationPlan', () => {
-  it('calls shell.exec with bash as first arg', async () => {
+  it('writes via a node one-liner (cross-platform), not bash', async () => {
     const shell = makeMockShell();
     await saveMigrationPlan(shell, '/tmp/project', mockPlan);
-    expect(shell.exec).toHaveBeenCalledWith('bash', expect.any(Array));
+    expect(shell.exec).toHaveBeenCalledWith('node', expect.any(Array), expect.any(Object));
   });
 
-  it('command string contains base64 -d', async () => {
+  it('passes the plan path via argv, with parent-dir creation in the script', async () => {
     const shell = makeMockShell();
     await saveMigrationPlan(shell, '/tmp/project', mockPlan);
     const args = shell.exec.mock.calls[0][1] as string[];
-    const cmd = args[1];
-    expect(cmd).toContain('base64 -d');
+    expect(args).toContain('/tmp/project/.shipstudio/migration-plan.json');
+    expect(args.join(' ')).toContain('mkdirSync');
   });
 
-  it('command string contains correct path .shipstudio/migration-plan.json', async () => {
+  it('passes the base64-encoded plan via argv', async () => {
     const shell = makeMockShell();
     await saveMigrationPlan(shell, '/tmp/project', mockPlan);
     const args = shell.exec.mock.calls[0][1] as string[];
-    const cmd = args[1];
-    expect(cmd).toContain('/tmp/project/.shipstudio/migration-plan.json');
-  });
-
-  it('command string includes mkdir -p for .shipstudio directory safety', async () => {
-    const shell = makeMockShell();
-    await saveMigrationPlan(shell, '/tmp/project', mockPlan);
-    const args = shell.exec.mock.calls[0][1] as string[];
-    const cmd = args[1];
-    expect(cmd).toContain('mkdir -p');
+    const json = JSON.stringify(mockPlan, null, 2);
+    const expectedEncoded = btoa(unescape(encodeURIComponent(json)));
+    expect(args).toContain(expectedEncoded);
   });
 
   it('throws on non-zero exit code with message containing Failed to save migration plan', async () => {

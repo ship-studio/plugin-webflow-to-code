@@ -1,5 +1,6 @@
 import type { Shell } from '../types';
 import type { ZipManifest } from './types';
+import { readFileBase64, decodeBase64 } from '../platform';
 
 /**
  * Parses `unzip -l` stdout to extract file count and entry list.
@@ -43,12 +44,11 @@ export async function validateWebflowExport(
     throw new Error('Missing CSS directory — is this a Webflow export?');
   }
 
-  const grepResult = await shell.exec('bash', [
-    '-c',
-    `grep -c 'data-wf-site' '${extractDir}/index.html' 2>/dev/null || echo 0`,
-  ]);
-  const wfSiteCount = parseInt(grepResult.stdout.trim(), 10);
-  if (wfSiteCount === 0) {
+  // Read index.html via Node and check in JS — cross-platform replacement
+  // for the previous macOS-only `bash -c grep` (ship-studio/ship-studio#659).
+  const readResult = await readFileBase64(shell, `${extractDir}/index.html`);
+  const indexHtml = readResult.exit_code === 0 ? decodeBase64(readResult.stdout.trim()) : '';
+  if (!indexHtml.includes('data-wf-site')) {
     throw new Error(
       'No data-wf-site attribute found — this may not be a Webflow export',
     );

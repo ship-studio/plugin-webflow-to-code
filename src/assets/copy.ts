@@ -1,10 +1,18 @@
 import type { Shell } from '../types';
 import type { AssetManifest } from './types';
 import { buildManifest } from './manifest';
+import { dirExists, makeDir, copyDir } from '../platform';
+
+/** Seconds for a directory copy; videos get a longer ceiling below. */
+const COPY_TIMEOUT = 120;
+const VIDEO_COPY_TIMEOUT = 300;
 
 /**
  * Copy a directory from source to destination if it exists.
  * Skips silently when the source directory is absent (e.g., fonts/ may not exist).
+ * All filesystem work goes through Node so it behaves the same on Windows
+ * (previously `bash test -d` / `mkdir -p` / `cp -r` — ship-studio/ship-studio#659).
+ * timeoutSeconds is in SECONDS (plugin shell API contract).
  */
 export async function copyDirIfExists(
   shell: Shell,
@@ -12,26 +20,18 @@ export async function copyDirIfExists(
   destDir: string,
   label: string,
   onProgress?: (label: string) => void,
-  timeout?: number,
+  timeoutSeconds?: number,
 ): Promise<void> {
-  const check = await shell.exec('bash', [
-    '-c',
-    `test -d '${srcDir}' && echo exists || echo absent`,
-  ]);
-  if (check.stdout.trim() === 'absent') return;
+  if (!(await dirExists(shell, srcDir))) return;
 
   onProgress?.(label);
 
-  const mkdirResult = await shell.exec('mkdir', ['-p', destDir]);
+  const mkdirResult = await makeDir(shell, destDir);
   if (mkdirResult.exit_code !== 0) {
     throw new Error(`Failed to create directory ${destDir}: ${mkdirResult.stderr.trim()}`);
   }
 
-  const cpResult = await shell.exec(
-    'bash',
-    ['-c', `cp -r '${srcDir}/.' '${destDir}/'`],
-    { timeout: timeout ?? 120000 },
-  );
+  const cpResult = await copyDir(shell, srcDir, destDir, timeoutSeconds ?? COPY_TIMEOUT);
   if (cpResult.exit_code !== 0) {
     throw new Error(`Failed to copy ${srcDir} to ${destDir}: ${cpResult.stderr.trim()}`);
   }
@@ -51,7 +51,7 @@ export async function copyAssets(
 ): Promise<AssetManifest> {
   const assetsDir = `${projectPath}/.shipstudio/assets`;
 
-  const mkdirResult = await shell.exec('mkdir', ['-p', assetsDir]);
+  const mkdirResult = await makeDir(shell, assetsDir);
   if (mkdirResult.exit_code !== 0) {
     throw new Error(`Failed to create assets directory: ${mkdirResult.stderr.trim()}`);
   }
@@ -63,7 +63,7 @@ export async function copyAssets(
 
   await copyDirIfExists(
     shell, `${extractDir}/videos`, `${assetsDir}/videos`,
-    'Copying videos (may take a moment)...', onProgress, 300000,
+    'Copying videos (may take a moment)...', onProgress, VIDEO_COPY_TIMEOUT,
   );
 
   await copyDirIfExists(

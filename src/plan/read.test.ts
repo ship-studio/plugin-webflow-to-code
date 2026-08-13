@@ -52,14 +52,13 @@ describe('loadMigrationPlan', () => {
     expect(result).toEqual(samplePlan);
   });
 
-  it('calls shell with correct command and path', async () => {
+  it('reads via a node one-liner with the path passed via argv', async () => {
     const encoded = encodePlan(samplePlan);
     const shell = makeShell(0, encoded);
     await loadMigrationPlan(shell, '/project');
-    expect(shell.exec).toHaveBeenCalledWith(
-      'bash',
-      ['-c', "cat '/project/.shipstudio/migration-plan.json' | base64"],
-    );
+    const call = shell.exec.mock.calls[0];
+    expect(call[0]).toBe('node');
+    expect(call[1]).toContain('/project/.shipstudio/migration-plan.json');
   });
 });
 

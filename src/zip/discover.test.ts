@@ -75,13 +75,22 @@ describe('validateWebflowExport', () => {
     'js/webflow.js',
   ];
 
+  const htmlWithWfSite =
+    '<html data-wf-site="abc123"><head></head><body></body></html>';
+  const htmlWithoutWfSite = '<html><head></head><body></body></html>';
+  const b64 = (text: string) => btoa(unescape(encodeURIComponent(text)));
+
   it('passes for entries with root HTML, css/ dir, and index.html containing data-wf-site', async () => {
     const shell = createMockShell([
-      { exit_code: 0, stdout: '2', stderr: '' }, // grep finds data-wf-site
+      { exit_code: 0, stdout: b64(htmlWithWfSite), stderr: '' }, // node read of index.html
     ]);
     await expect(
       validateWebflowExport(shell, '/tmp/out', validEntries),
     ).resolves.toBeUndefined();
+    // Reads index.html via node (cross-platform), not bash grep
+    const call = (shell.exec as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(call[0]).toBe('node');
+    expect(call[1]).toContain('/tmp/out/index.html');
   });
 
   it('throws "No HTML files found" when no .html entries at root', async () => {
@@ -100,9 +109,20 @@ describe('validateWebflowExport', () => {
     ).rejects.toThrow('Missing CSS directory — is this a Webflow export?');
   });
 
-  it('throws "No data-wf-site attribute found" when grep returns 0 matches', async () => {
+  it('throws "No data-wf-site attribute found" when index.html lacks the attribute', async () => {
     const shell = createMockShell([
-      { exit_code: 0, stdout: '0', stderr: '' }, // grep finds nothing
+      { exit_code: 0, stdout: b64(htmlWithoutWfSite), stderr: '' },
+    ]);
+    await expect(
+      validateWebflowExport(shell, '/tmp/out', validEntries),
+    ).rejects.toThrow(
+      'No data-wf-site attribute found — this may not be a Webflow export',
+    );
+  });
+
+  it('throws "No data-wf-site attribute found" when index.html cannot be read', async () => {
+    const shell = createMockShell([
+      { exit_code: 1, stdout: '', stderr: 'ENOENT' },
     ]);
     await expect(
       validateWebflowExport(shell, '/tmp/out', validEntries),
